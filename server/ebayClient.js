@@ -1,0 +1,155 @@
+import axios from 'axios';
+import 'dotenv/config';
+
+const EBAY_AUTH_URL = 'https://api.ebay.com/identity/v1/oauth2/token';
+const EBAY_INSIGHTS_URL = 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search';
+const EBAY_BROWSE_URL = 'https://api.ebay.com/buy/browse/v1/item_summary/search';
+const SPORTS_CARDS_CATEGORY = '212'; // eBay Sports Trading Cards category
+
+const tokens = {};
+
+async function getAccessToken(scope = 'insights') {
+  const scopeUrl = scope === 'browse'
+    ? 'https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+    : 'https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope%2Fbuy.marketplace.insights';
+
+  const cached = tokens[scope];
+  if (cached && Date.now() < cached.expiry - 60000) return cached.token;
+
+  const credentials = Buffer.from(
+    `${process.env.EBAY_CLIENT_ID}:${process.env.EBAY_CLIENT_SECRET}`
+  ).toString('base64');
+
+  const response = await axios.post(
+    EBAY_AUTH_URL,
+    `grant_type=client_credentials&scope=${scopeUrl}`,
+    {
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  tokens[scope] = {
+    token: response.data.access_token,
+    expiry: Date.now() + response.data.expires_in * 1000,
+  };
+  return tokens[scope].token;
+}
+
+const SPORT_QUERIES = {
+  baseball: 'baseball card',
+  basketball: 'basketball card',
+  football: 'football card',
+  hockey: 'hockey card',
+};
+
+const SPORT_COLORS = {
+  baseball: '#e63946',
+  basketball: '#f4a261',
+  football: '#2a9d8f',
+  hockey: '#4895ef',
+};
+
+export async function fetchRecentSales(sport, limit = 50) {
+  const token = await getAccessToken();
+  const query = SPORT_QUERIES[sport];
+
+  const response = await axios.get(EBAY_INSIGHTS_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: query,
+      category_ids: SPORTS_CARDS_CATEGORY,
+      limit,
+      sort: 'lastSoldDate',
+    },
+  });
+
+  const items = response.data.itemSales || [];
+
+  return items.map((item) => ({
+    id: item.itemId,
+    title: item.title,
+    image: item.image?.imageUrl || null,
+    price: parseFloat(item.lastSoldPrice?.value || 0),
+    currency: item.lastSoldPrice?.currency || 'USD',
+    soldAt: item.lastSoldDate,
+    sport,
+    sportColor: SPORT_COLORS[sport],
+    itemUrl: item.itemWebUrl,
+    condition: item.condition || 'Unknown',
+  }));
+}
+
+export async function fetchAllSports() {
+  const sports = Object.keys(SPORT_QUERIES);
+  const results = await Promise.allSettled(
+    sports.map((sport) => fetchRecentSales(sport, 25))
+  );
+
+  const sales = [];
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled') {
+      sales.push(...result.value);
+    } else {
+      console.error(`Failed to fetch ${sports[i]}:`, result.reason?.message);
+    }
+  });
+
+  return sales.sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt));
+}
+
+// Browse API — active listings with real images, used to seed mock mode
+export async function fetchBrowseListings(sport, limit = 20) {
+  const token = await getAccessToken('browse');
+  const query = SPORT_QUERIES[sport];
+
+  const response = await axios.get(EBAY_BROWSE_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: query,
+      category_ids: SPORTS_CARDS_CATEGORY,
+      limit,
+      filter: 'buyingOptions:{FIXED_PRICE}',
+      sort: 'newlyListed',
+    },
+  });
+
+  const items = response.data.itemSummaries || [];
+
+  return items
+    .filter((item) => item.image?.imageUrl)
+    .map((item) => ({
+      id: `browse-${item.itemId}`,
+      title: item.title,
+      image: item.image.imageUrl,
+      price: parseFloat(item.price?.value || 0),
+      currency: item.price?.currency || 'USD',
+      soldAt: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+      sport,
+      sportColor: SPORT_COLORS[sport],
+      itemUrl: item.itemWebUrl,
+      condition: item.condition || 'Unknown',
+    }));
+}
+
+export async function fetchBrowseAllSports(limitPerSport = 15) {
+  const sports = Object.keys(SPORT_QUERIES);
+  const results = await Promise.allSettled(
+    sports.map((sport) => fetchBrowseListings(sport, limitPerSport))
+  );
+
+  const listings = [];
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled') {
+      listings.push(...result.value);
+    } else {
+      console.warn(`[Browse] ${sports[i]} failed:`, result.reason?.message);
+    }
+  });
+
+  return listings.sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt));
+}
+
+export { SPORT_COLORS };
