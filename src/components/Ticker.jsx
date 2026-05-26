@@ -7,8 +7,6 @@ function fmt(price) {
 }
 
 function TickerItem({ sale }) {
-  const arrow = sale.priceDirection === 'up' ? '▲' : sale.priceDirection === 'down' ? '▼' : '—';
-  const dirColor = sale.priceDirection === 'up' ? '#22c55e' : sale.priceDirection === 'down' ? '#ef4444' : '#9ca3af';
   const label = sale.title.length > 40 ? sale.title.slice(0, 38) + '…' : sale.title;
 
   return (
@@ -16,11 +14,6 @@ function TickerItem({ sale }) {
       <span className="ticker-sport-dot" />
       <span className="ticker-label">{label}</span>
       <span className="ticker-price">{fmt(sale.price)}</span>
-      {sale.pctChange !== null && (
-        <span className="ticker-change" style={{ color: dirColor }}>
-          {arrow} {Math.abs(sale.pctChange)}%
-        </span>
-      )}
       <span className="ticker-sep">·</span>
     </span>
   );

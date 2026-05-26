@@ -84,15 +84,7 @@ export default function CardItem({ sale, isNew }) {
         <div className="card-item__price-row">
           <span className="card-item__price">{fmt(sale.price)}</span>
 
-          {sale.pctChange !== null && arrow && (
-            <span className="card-item__change" style={{ color: dirColor }}>
-              {arrow} {Math.abs(sale.pctChange)}%
-              <span className="card-item__vs">vs avg {fmt(sale.prevAvgPrice)}</span>
-            </span>
-          )}
-          {sale.pctChange === null && (
-            <span className="card-item__first-sale">first sale</span>
-          )}
+          <span className="card-item__first-sale">asking price</span>
         </div>
       </div>
     </div>
