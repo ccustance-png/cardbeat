@@ -66,7 +66,7 @@ export default function App() {
       <header className="app-header">
         <div className="app-header__left">
           <h1 className="app-logo">CardBeat</h1>
-          <span className="app-tagline">Live eBay Sports Card Sales</span>
+          <span className="app-tagline">Live eBay Sports Card Market</span>
         </div>
         <div className="app-header__right">
           <div className={`status-dot ${connected ? 'status-dot--live' : 'status-dot--offline'}`} />
