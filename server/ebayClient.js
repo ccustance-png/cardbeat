@@ -2,18 +2,15 @@ import axios from 'axios';
 import 'dotenv/config';
 
 const EBAY_AUTH_URL = 'https://api.ebay.com/identity/v1/oauth2/token';
-const EBAY_INSIGHTS_URL = 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search';
+const EBAY_FINDING_URL = 'https://svcs.ebay.com/services/search/FindingService/v1';
 const EBAY_BROWSE_URL = 'https://api.ebay.com/buy/browse/v1/item_summary/search';
 const SPORTS_CARDS_CATEGORY = '212'; // eBay Sports Trading Cards category
 
+// OAuth tokens for Browse API (Finding API uses App ID directly)
 const tokens = {};
 
-async function getAccessToken(scope = 'insights') {
-  const scopeUrl = scope === 'browse'
-    ? 'https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
-    : 'https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope%2Fbuy.marketplace.insights';
-
-  const cached = tokens[scope];
+async function getAccessToken() {
+  const cached = tokens['browse'];
   if (cached && Date.now() < cached.expiry - 60000) return cached.token;
 
   const credentials = Buffer.from(
@@ -22,7 +19,7 @@ async function getAccessToken(scope = 'insights') {
 
   const response = await axios.post(
     EBAY_AUTH_URL,
-    `grant_type=client_credentials&scope=${scopeUrl}`,
+    'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
     {
       headers: {
         Authorization: `Basic ${credentials}`,
@@ -31,11 +28,11 @@ async function getAccessToken(scope = 'insights') {
     }
   );
 
-  tokens[scope] = {
+  tokens['browse'] = {
     token: response.data.access_token,
     expiry: Date.now() + response.data.expires_in * 1000,
   };
-  return tokens[scope].token;
+  return tokens['browse'].token;
 }
 
 const SPORT_QUERIES = {
@@ -52,34 +49,40 @@ const SPORT_COLORS = {
   hockey: '#4895ef',
 };
 
+// Finding API — real completed/sold listings
 export async function fetchRecentSales(sport, limit = 50) {
-  const token = await getAccessToken();
   const query = SPORT_QUERIES[sport];
 
-  const response = await axios.get(EBAY_INSIGHTS_URL, {
-    headers: { Authorization: `Bearer ${token}` },
+  const response = await axios.get(EBAY_FINDING_URL, {
     params: {
-      q: query,
-      category_ids: SPORTS_CARDS_CATEGORY,
-      limit,
-      sort: 'lastSoldDate',
+      'OPERATION-NAME': 'findCompletedItems',
+      'SERVICE-VERSION': '1.0.0',
+      'SECURITY-APPNAME': process.env.EBAY_CLIENT_ID,
+      'RESPONSE-DATA-FORMAT': 'JSON',
+      'keywords': query,
+      'categoryId': SPORTS_CARDS_CATEGORY,
+      'itemFilter(0).name': 'SoldItemsOnly',
+      'itemFilter(0).value': 'true',
+      'sortOrder': 'EndTimeSoonest',
+      'paginationInput.entriesPerPage': limit,
     },
   });
 
-  const items = response.data.itemSales || [];
+  const items = response.data?.findCompletedItemsResponse?.[0]
+    ?.searchResult?.[0]?.item || [];
 
   return items.map((item) => ({
-    id: item.itemId,
-    title: item.title,
-    image: item.image?.imageUrl || null,
-    price: parseFloat(item.lastSoldPrice?.value || 0),
-    currency: item.lastSoldPrice?.currency || 'USD',
-    soldAt: item.lastSoldDate,
+    id: item.itemId?.[0],
+    title: item.title?.[0],
+    image: item.galleryURL?.[0] || null,
+    price: parseFloat(item.sellingStatus?.[0]?.currentPrice?.[0]?.['__value__'] || 0),
+    currency: item.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || 'USD',
+    soldAt: item.listingInfo?.[0]?.endTime?.[0] || new Date().toISOString(),
     sport,
     sportColor: SPORT_COLORS[sport],
-    itemUrl: item.itemWebUrl,
-    condition: item.condition || 'Unknown',
-  }));
+    itemUrl: item.viewItemURL?.[0] || '#',
+    condition: item.condition?.[0]?.conditionDisplayName?.[0] || 'Unknown',
+  })).filter(item => item.price > 0);
 }
 
 export async function fetchAllSports() {
