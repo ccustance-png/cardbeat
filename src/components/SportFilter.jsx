@@ -4,6 +4,7 @@ const SPORTS = [
   { key: 'basketball', label: 'Basketball', color: '#f4a261' },
   { key: 'football', label: 'Football', color: '#2a9d8f' },
   { key: 'hockey', label: 'Hockey', color: '#4895ef' },
+  { key: 'soccer', label: 'Soccer', color: '#22c55e' },
 ];
 
 export default function SportFilter({ active, onChange, counts }) {
