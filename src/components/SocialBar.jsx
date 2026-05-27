@@ -34,13 +34,13 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
   }
 
   async function share() {
-    const url = sale.itemUrl || window.location.href;
-    const text = `${sale.title} — ${sale.price ? `$${parseFloat(sale.price).toFixed(2)}` : ''} on CardBeat`;
+    const shareUrl = `${window.location.origin}/listing/${sale.id}`;
+    const text = `${sale.title}${sale.price ? ` — $${parseFloat(sale.price).toFixed(2)}` : ''} on CardBeat`;
     if (navigator.share) {
-      try { await navigator.share({ title: sale.title, text, url }); } catch {}
+      try { await navigator.share({ title: sale.title, text, url: shareUrl }); } catch {}
     } else {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareUrl);
         setShareFeedback(true);
         setTimeout(() => setShareFeedback(false), 2000);
       } catch {}

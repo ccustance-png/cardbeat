@@ -1200,3 +1200,293 @@ a:hover { text-decoration: underline; }
   .app-tagline { display: none; }
   .card-feed { grid-template-columns: 1fr; }
 }
+
+/* ── Listing Permalink Page ── */
+.listing-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.listing-page__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.listing-back {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-family: var(--font);
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.listing-back:hover { color: var(--text); }
+
+.listing-page__brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.listing-page__tagline {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.listing-page__body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Main card block ── */
+.listing-card {
+  display: flex;
+  gap: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--sport-color, var(--border));
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.listing-card__img-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.listing-card__img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #111;
+  display: block;
+}
+
+.listing-card__img-placeholder {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sport-color, #333) 15%, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+}
+
+.listing-card__sport-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: var(--sport-color, #555);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.listing-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.listing-card__title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 0;
+}
+
+.listing-card__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.listing-card__price {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--sport-color, var(--text));
+}
+
+.listing-card__asking {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.listing-card__ebay-btn {
+  display: inline-block;
+  padding: 9px 20px;
+  background: var(--sport-color, #3b82f6);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  transition: opacity 0.15s;
+  align-self: flex-start;
+}
+.listing-card__ebay-btn:hover { opacity: 0.85; }
+
+/* ── Reaction summary ── */
+.listing-reactions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.listing-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-size: 15px;
+}
+
+.listing-reaction__count {
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+}
+
+/* ── Inline comments ── */
+.listing-comments {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.listing-comments__heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.listing-comments__empty {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.listing-comments__signin {
+  background: none;
+  border: none;
+  color: var(--sport-color, #3b82f6);
+  font-size: 14px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.listing-comment {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.listing-comment:last-child { border-bottom: none; padding-bottom: 0; }
+.listing-comment:first-child { padding-top: 0; }
+
+.listing-comment__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.listing-comment__user {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.listing-comment__time {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.listing-comment__text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Loading / Not found states ── */
+.listing-loading {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.listing-notfound {
+  text-align: center;
+  padding: 80px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.listing-notfound__icon { font-size: 48px; }
+
+.listing-notfound h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.listing-notfound p {
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.listing-notfound__cta {
+  color: var(--text-muted);
+  font-size: 14px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 8px 18px;
+  border-radius: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.listing-notfound__cta:hover { border-color: var(--border-bright); color: var(--text); }
+
+/* ── Responsive: listing page on mobile ── */
+@media (max-width: 600px) {
+  .listing-card { flex-direction: column; }
+  .listing-card__img-wrap { width: 100%; }
+  .listing-card__img, .listing-card__img-placeholder { width: 100%; height: 240px; }
+  .listing-page__tagline { display: none; }
+  .listing-page__body { padding: 16px; }
+}

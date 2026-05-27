@@ -90,6 +90,58 @@ router.get('/trending/top', async (_req, res) => {
   }
 });
 
+// GET /api/social/listing/:listingId — full listing data for permalink pages
+router.get('/listing/:listingId', optionalAuth, async (req, res) => {
+  const { listingId } = req.params;
+  const userId = req.user?.id || null;
+  try {
+    // Pull metadata from whichever social table has it first
+    const metaRes = await query(`
+      SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
+      FROM (
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM ratings       WHERE listing_id = $1 LIMIT 1
+        UNION ALL
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM comments      WHERE listing_id = $1 LIMIT 1
+        UNION ALL
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM reactions     WHERE listing_id = $1 LIMIT 1
+        UNION ALL
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM saved_listings WHERE listing_id = $1 LIMIT 1
+      ) t LIMIT 1
+    `, [listingId]);
+
+    if (!metaRes.rows.length) return res.status(404).json({ error: 'Listing not found' });
+    const meta = metaRes.rows[0];
+
+    const [ratingsRes, reactionsRes, commentsRes, myRatingRes, myReactionsRes, savedRes] = await Promise.all([
+      query(`SELECT ROUND(AVG(stars)::numeric, 1) as avg, COUNT(*) as count FROM ratings WHERE listing_id = $1`, [listingId]),
+      query(`SELECT emoji, COUNT(*) as count FROM reactions WHERE listing_id = $1 GROUP BY emoji`, [listingId]),
+      query(`SELECT c.id, c.content, c.created_at, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.listing_id = $1 ORDER BY c.created_at ASC`, [listingId]),
+      userId ? query(`SELECT stars FROM ratings WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
+      userId ? query(`SELECT emoji FROM reactions WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
+      userId ? query(`SELECT id FROM saved_listings WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
+    ]);
+
+    res.json({
+      id: meta.listing_id,
+      title: meta.listing_title,
+      image: meta.listing_image,
+      price: parseFloat(meta.listing_price) || 0,
+      sport: meta.listing_sport,
+      itemUrl: meta.listing_url,
+      social: {
+        rating: { avg: parseFloat(ratingsRes.rows[0]?.avg) || null, count: parseInt(ratingsRes.rows[0]?.count) || 0, myStars: myRatingRes.rows[0]?.stars || null },
+        reactions: reactionsRes.rows.map(r => ({ emoji: r.emoji, count: parseInt(r.count) })),
+        myReactions: myReactionsRes.rows.map(r => r.emoji),
+        comments: commentsRes.rows,
+        isSaved: savedRes.rows.length > 0,
+      },
+    });
+  } catch (err) {
+    console.error('[Listing] page error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch listing' });
+  }
+});
+
 // GET /api/social/:listingId — ratings, reactions, comments summary
 router.get('/:listingId', optionalAuth, async (req, res) => {
   const { listingId } = req.params;

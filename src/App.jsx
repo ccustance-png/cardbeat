@@ -8,6 +8,7 @@ import TrendingSidebar from './components/TrendingSidebar.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import CommentDrawer from './components/CommentDrawer.jsx';
 import SavedDrawer from './components/SavedDrawer.jsx';
+import ListingPage from './components/ListingPage.jsx';
 
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
 const NEW_SALE_FLASH_MS = 3000;
@@ -192,9 +193,10 @@ function AppInner() {
 }
 
 export default function App() {
+  const listingMatch = window.location.pathname.match(/^\/listing\/(.+)$/);
   return (
     <AuthProvider>
-      <AppInner />
+      {listingMatch ? <ListingPage listingId={listingMatch[1]} /> : <AppInner />}
     </AuthProvider>
   );
 }
