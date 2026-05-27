@@ -92,6 +92,16 @@ export async function migrate() {
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(listing_id, user_id)
     );
+
+    CREATE TABLE IF NOT EXISTS listings (
+      listing_id VARCHAR(255) PRIMARY KEY,
+      listing_title TEXT,
+      listing_image TEXT,
+      listing_price DECIMAL,
+      listing_sport VARCHAR(50),
+      listing_url TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `);
   console.log('[DB] Schema ready');
 }

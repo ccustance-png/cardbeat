@@ -90,23 +90,50 @@ router.get('/trending/top', async (_req, res) => {
   }
 });
 
+// POST /api/social/:listingId/register — store listing metadata on share (no auth needed)
+router.post('/:listingId/register', async (req, res) => {
+  const { listingId } = req.params;
+  const meta = listingMeta(req.body);
+  try {
+    await query(`
+      INSERT INTO listings (listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (listing_id) DO UPDATE SET
+        listing_title = COALESCE($2, listings.listing_title),
+        listing_image = COALESCE($3, listings.listing_image),
+        listing_price = COALESCE($4, listings.listing_price),
+        listing_sport = COALESCE($5, listings.listing_sport),
+        listing_url   = COALESCE($6, listings.listing_url)
+    `, [listingId, meta.listing_title, meta.listing_image, meta.listing_price, meta.listing_sport, meta.listing_url]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Social] register error:', err.message);
+    res.json({ ok: false });
+  }
+});
+
 // GET /api/social/listing/:listingId — full listing data for permalink pages
 router.get('/listing/:listingId', optionalAuth, async (req, res) => {
   const { listingId } = req.params;
   const userId = req.user?.id || null;
   try {
-    // Pull metadata from whichever social table has it first
+    // Check the dedicated listings table first (most reliable),
+    // then fall back to interaction tables for cards shared before this feature
     const metaRes = await query(`
       SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
+      FROM listings WHERE listing_id = $1
+      UNION ALL
+      SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
       FROM (
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM ratings       WHERE listing_id = $1 LIMIT 1
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM ratings        WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
         UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM comments      WHERE listing_id = $1 LIMIT 1
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM comments       WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
         UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM reactions     WHERE listing_id = $1 LIMIT 1
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM reactions      WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
         UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM saved_listings WHERE listing_id = $1 LIMIT 1
-      ) t LIMIT 1
+        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM saved_listings WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
+      ) fallback LIMIT 1
+      LIMIT 1
     `, [listingId]);
 
     if (!metaRes.rows.length) return res.status(404).json({ error: 'Listing not found' });
