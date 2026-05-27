@@ -55,7 +55,6 @@ export default function TrendingSidebar({ onCardClick }) {
               <div className="trending-info">
                 <p className="trending-card-title">{item.title?.slice(0, 50)}{item.title?.length > 50 ? '…' : ''}</p>
                 <div className="trending-stats">
-                  {item.avg_stars && <span>{'★'.repeat(Math.round(item.avg_stars))} {item.avg_stars}</span>}
                   <span>💬 {item.comment_count}</span>
                   <span className="trending-price">{fmt(item.price)}</span>
                 </div>
