@@ -145,8 +145,31 @@ function AppInner() {
           />
         </div>
         <TrendingSidebar onCardClick={(item) => {
-          const sale = sales.find(s => s.id === item.listing_id);
-          if (sale) setCommentSale(sale);
+          // Try to find the live card in the feed first (for scroll + pulse)
+          const liveSale = sales.find(s => s.id === item.listing_id);
+          if (liveSale) {
+            const el = document.querySelector(`[data-sale-id="${liveSale.id}"]`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('card-item--pulse');
+              setTimeout(() => el.classList.remove('card-item--pulse'), 1800);
+            }
+            setCommentSale(liveSale);
+          } else {
+            // Card not in current feed — build from trending item's stored metadata
+            const SPORT_COLORS = { baseball: '#e63946', basketball: '#f4a261', football: '#2a9d8f', hockey: '#4895ef' };
+            setCommentSale({
+              id: item.listing_id,
+              title: item.title,
+              image: item.image,
+              price: parseFloat(item.price) || 0,
+              sport: item.sport,
+              sportColor: SPORT_COLORS[item.sport] || '#a1a1aa',
+              itemUrl: item.item_url,
+              condition: '',
+              soldAt: new Date().toISOString(),
+            });
+          }
         }} />
       </div>
 
