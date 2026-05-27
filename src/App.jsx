@@ -1,18 +1,36 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Ticker from './components/Ticker.jsx';
 import SportFilter from './components/SportFilter.jsx';
 import CardFeed from './components/CardFeed.jsx';
+import TrendingSidebar from './components/TrendingSidebar.jsx';
+import AuthModal from './components/AuthModal.jsx';
+import CommentDrawer from './components/CommentDrawer.jsx';
 
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
 const NEW_SALE_FLASH_MS = 3000;
 
-export default function App() {
+function HeaderAuth({ onSignIn }) {
+  const { user, logout } = useAuth();
+  return user ? (
+    <div className="header-user">
+      <span className="header-username">@{user.username}</span>
+      <button className="header-signout" onClick={logout}>Sign out</button>
+    </div>
+  ) : (
+    <button className="header-signin" onClick={onSignIn}>Sign in</button>
+  );
+}
+
+function AppInner() {
   const [sales, setSales] = useState([]);
   const [activeSport, setActiveSport] = useState('all');
   const [newSaleIds, setNewSaleIds] = useState(new Set());
   const [connected, setConnected] = useState(false);
   const [totalSeen, setTotalSeen] = useState(0);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [commentSale, setCommentSale] = useState(null);
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
 
@@ -72,17 +90,47 @@ export default function App() {
           <div className={`status-dot ${connected ? 'status-dot--live' : 'status-dot--offline'}`} />
           <span className="status-label">{connected ? 'Live' : 'Connecting…'}</span>
           {totalSeen > 0 && (
-            <span className="total-seen">{totalSeen.toLocaleString()} sales</span>
+            <span className="total-seen">{totalSeen.toLocaleString()} listings</span>
           )}
+          <HeaderAuth onSignIn={() => setAuthModalOpen(true)} />
         </div>
       </header>
 
       <Ticker sales={sales} />
 
       <div className="app-body">
-        <SportFilter active={activeSport} onChange={setActiveSport} counts={counts} />
-        <CardFeed sales={sales} activeSport={activeSport} newSaleIds={newSaleIds} />
+        <div className="app-main">
+          <SportFilter active={activeSport} onChange={setActiveSport} counts={counts} />
+          <CardFeed
+            sales={sales}
+            activeSport={activeSport}
+            newSaleIds={newSaleIds}
+            onCommentClick={setCommentSale}
+            onAuthRequired={() => setAuthModalOpen(true)}
+          />
+        </div>
+        <TrendingSidebar onCardClick={(item) => {
+          const sale = sales.find(s => s.id === item.listing_id);
+          if (sale) setCommentSale(sale);
+        }} />
       </div>
+
+      {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
+      {commentSale && (
+        <CommentDrawer
+          sale={commentSale}
+          onClose={() => setCommentSale(null)}
+          onAuthRequired={() => { setCommentSale(null); setAuthModalOpen(true); }}
+        />
+      )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }

@@ -8,6 +8,9 @@ import { fileURLToPath } from 'url';
 import { fetchAllSports, fetchBrowseAllSports } from './ebayClient.js';
 import { generateMockSale, generateMockSales } from './mockData.js';
 import { addSale, getSales } from './store.js';
+import { migrate } from './db.js';
+import authRouter from './auth.js';
+import socialRouter from './social.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -22,6 +25,9 @@ const POLL_INTERVAL_MS = 45000; // 45 seconds between eBay polls
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRouter);
+app.use('/api/social', socialRouter);
 
 app.get('/api/sales', (req, res) => {
   const { sport, limit } = req.query;
@@ -126,6 +132,9 @@ async function startLiveMode() {
 
 httpServer.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT} [${USE_MOCK ? 'MOCK' : 'LIVE'}]`);
+  if (process.env.DATABASE_URL) {
+    try { await migrate(); } catch (e) { console.warn('[DB] Migration skipped:', e.message); }
+  }
   if (USE_MOCK) {
     startMockMode();
   } else {

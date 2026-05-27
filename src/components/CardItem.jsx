@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SocialBar from './SocialBar.jsx';
 
 function fmt(price) {
   if (price >= 1000) return `$${price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -12,21 +13,17 @@ function timeAgo(iso) {
   return `listed ${Math.floor(secs / 3600)}h ago`;
 }
 
-const SPORT_ICONS = {
-  baseball: '⚾',
-  basketball: '🏀',
-  football: '🏈',
-  hockey: '🏒',
-};
+function affiliateUrl(url) {
+  if (!url || url === '#') return url;
+  const campId = import.meta.env.VITE_EPN_CAMPAIGN_ID;
+  if (!campId) return url;
+  return `https://rover.ebay.com/rover/1/711-53200-19255-0/1?ff3=4&pub=5575${campId}&toolid=10001&campid=${campId}&mpre=${encodeURIComponent(url)}`;
+}
 
-const PLACEHOLDER_COLORS = {
-  baseball: '#3d0f12',
-  basketball: '#3d2008',
-  football: '#0b2d28',
-  hockey: '#0c1f3d',
-};
+const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒' };
+const PLACEHOLDER_COLORS = { baseball: '#3d0f12', basketball: '#3d2008', football: '#0b2d28', hockey: '#0c1f3d' };
 
-export default function CardItem({ sale, isNew }) {
+export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }) {
   const [highlight, setHighlight] = useState(isNew);
 
   useEffect(() => {
@@ -36,8 +33,7 @@ export default function CardItem({ sale, isNew }) {
     return () => clearTimeout(t);
   }, [isNew, sale.id]);
 
-  const arrow = sale.priceDirection === 'up' ? '▲' : sale.priceDirection === 'down' ? '▼' : null;
-  const dirColor = sale.priceDirection === 'up' ? '#22c55e' : sale.priceDirection === 'down' ? '#ef4444' : null;
+  const href = affiliateUrl(sale.itemUrl);
 
   return (
     <div
@@ -56,10 +52,7 @@ export default function CardItem({ sale, isNew }) {
         ) : null}
         <div
           className="card-item__img-placeholder"
-          style={{
-            background: PLACEHOLDER_COLORS[sale.sport],
-            display: sale.image ? 'none' : 'flex',
-          }}
+          style={{ background: PLACEHOLDER_COLORS[sale.sport], display: sale.image ? 'none' : 'flex' }}
         >
           <span className="card-item__placeholder-icon">{SPORT_ICONS[sale.sport]}</span>
           <span className="card-item__placeholder-title">{sale.title}</span>
@@ -69,11 +62,9 @@ export default function CardItem({ sale, isNew }) {
 
       <div className="card-item__body">
         <p className="card-item__title">
-          {sale.itemUrl && sale.itemUrl !== '#' ? (
-            <a href={sale.itemUrl} target="_blank" rel="noreferrer">{sale.title}</a>
-          ) : (
-            sale.title
-          )}
+          {href && href !== '#' ? (
+            <a href={href} target="_blank" rel="noreferrer">{sale.title}</a>
+          ) : sale.title}
         </p>
 
         <div className="card-item__meta">
@@ -83,9 +74,14 @@ export default function CardItem({ sale, isNew }) {
 
         <div className="card-item__price-row">
           <span className="card-item__price">{fmt(sale.price)}</span>
-
           <span className="card-item__first-sale">asking price</span>
         </div>
+
+        <SocialBar
+          sale={sale}
+          onCommentClick={() => onCommentClick(sale)}
+          onAuthRequired={onAuthRequired}
+        />
       </div>
     </div>
   );
