@@ -38,6 +38,12 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
     const text = `${sale.title}${sale.price ? ` — $${parseFloat(sale.price).toFixed(2)}` : ''} on CardBeat`;
     // Store in localStorage (instant for same-browser visits) + register in DB (for future/external visits)
     try { localStorage.setItem(`cb_listing_${sale.id}`, JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl })); } catch {}
+    // Log the share for trending score
+    fetch(`/api/social/${sale.id}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl }),
+    }).catch(() => {});
     fetch(`/api/social/${sale.id}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

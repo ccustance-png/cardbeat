@@ -102,6 +102,17 @@ export async function migrate() {
       listing_url TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS shares (
+      id SERIAL PRIMARY KEY,
+      listing_id VARCHAR(255) NOT NULL,
+      listing_title TEXT,
+      listing_image TEXT,
+      listing_price DECIMAL,
+      listing_sport VARCHAR(50),
+      listing_url TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `);
   console.log('[DB] Schema ready');
 }

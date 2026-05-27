@@ -44,10 +44,16 @@ router.get('/trending/top', async (_req, res) => {
         base.image,
         base.price,
         base.sport,
-        COALESCE(r.cnt, 0) * 2 + COALESCE(c.cnt, 0) * 3 + COALESCE(rx.cnt, 0) AS score,
-        COALESCE(r.cnt, 0) AS rating_count,
-        COALESCE(c.cnt, 0) AS comment_count,
+        COALESCE(r.cnt,  0) * 2
+          + COALESCE(c.cnt,  0) * 3
+          + COALESCE(rx.cnt, 0) * 1
+          + COALESCE(sv.cnt, 0) * 2
+          + COALESCE(sh.cnt, 0) * 3  AS score,
+        COALESCE(r.cnt,  0) AS rating_count,
+        COALESCE(c.cnt,  0) AS comment_count,
         COALESCE(rx.cnt, 0) AS reaction_count,
+        COALESCE(sv.cnt, 0) AS save_count,
+        COALESCE(sh.cnt, 0) AS share_count,
         r.avg_stars
       FROM (
         SELECT
@@ -57,11 +63,15 @@ router.get('/trending/top', async (_req, res) => {
           MAX(listing_price)  AS price,
           MAX(listing_sport)  AS sport
         FROM (
-          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM ratings  WHERE created_at > NOW() - INTERVAL '24 hours'
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM ratings        WHERE created_at > NOW() - INTERVAL '24 hours'
           UNION ALL
-          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM comments  WHERE created_at > NOW() - INTERVAL '24 hours'
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM comments       WHERE created_at > NOW() - INTERVAL '24 hours'
           UNION ALL
-          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM reactions WHERE created_at > NOW() - INTERVAL '24 hours'
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM reactions      WHERE created_at > NOW() - INTERVAL '24 hours'
+          UNION ALL
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM saved_listings WHERE created_at > NOW() - INTERVAL '24 hours'
+          UNION ALL
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM shares         WHERE created_at > NOW() - INTERVAL '24 hours'
         ) all_activity
         GROUP BY listing_id
       ) base
@@ -80,6 +90,16 @@ router.get('/trending/top', async (_req, res) => {
         FROM reactions WHERE created_at > NOW() - INTERVAL '24 hours'
         GROUP BY listing_id
       ) rx ON rx.listing_id = base.listing_id
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*) AS cnt
+        FROM saved_listings WHERE created_at > NOW() - INTERVAL '24 hours'
+        GROUP BY listing_id
+      ) sv ON sv.listing_id = base.listing_id
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*) AS cnt
+        FROM shares WHERE created_at > NOW() - INTERVAL '24 hours'
+        GROUP BY listing_id
+      ) sh ON sh.listing_id = base.listing_id
       ORDER BY score DESC
       LIMIT 10
     `);
@@ -87,6 +107,23 @@ router.get('/trending/top', async (_req, res) => {
   } catch (err) {
     console.error('[Social] trending error:', err.message);
     res.json([]);
+  }
+});
+
+// POST /api/social/:listingId/share — record a share event for trending
+router.post('/:listingId/share', async (req, res) => {
+  const { listingId } = req.params;
+  const meta = listingMeta(req.body);
+  try {
+    await query(
+      `INSERT INTO shares (listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [listingId, meta.listing_title, meta.listing_image, meta.listing_price, meta.listing_sport, meta.listing_url]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Social] share error:', err.message);
+    res.json({ ok: false });
   }
 });
 
