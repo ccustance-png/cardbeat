@@ -23,28 +23,47 @@ router.get('/trending/top', async (_req, res) => {
   try {
     const { rows } = await query(`
       SELECT
-        listing_id,
-        MAX(listing_title) as title,
-        MAX(listing_image) as image,
-        MAX(listing_price::text)::decimal as price,
-        MAX(listing_sport) as sport,
-        MAX(listing_url) as item_url,
-        (COUNT(DISTINCT r.id) * 2 + COUNT(DISTINCT c.id) * 3 + COUNT(DISTINCT rx.id)) as score,
-        COUNT(DISTINCT r.id) as rating_count,
-        COUNT(DISTINCT c.id) as comment_count,
-        COUNT(DISTINCT rx.id) as reaction_count,
-        ROUND(AVG(r.stars)::numeric, 1) as avg_stars
+        base.listing_id,
+        base.title,
+        base.image,
+        base.price,
+        base.sport,
+        COALESCE(r.cnt, 0) * 2 + COALESCE(c.cnt, 0) * 3 + COALESCE(rx.cnt, 0) AS score,
+        COALESCE(r.cnt, 0) AS rating_count,
+        COALESCE(c.cnt, 0) AS comment_count,
+        COALESCE(rx.cnt, 0) AS reaction_count,
+        r.avg_stars
       FROM (
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url, id as id FROM ratings WHERE created_at > NOW() - INTERVAL '24 hours'
-        UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url, NULL FROM comments WHERE created_at > NOW() - INTERVAL '24 hours'
-        UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url, NULL FROM reactions WHERE created_at > NOW() - INTERVAL '24 hours'
-      ) combined
-      LEFT JOIN ratings r ON r.listing_id = combined.listing_id AND r.created_at > NOW() - INTERVAL '24 hours'
-      LEFT JOIN comments c ON c.listing_id = combined.listing_id AND c.created_at > NOW() - INTERVAL '24 hours'
-      LEFT JOIN reactions rx ON rx.listing_id = combined.listing_id AND rx.created_at > NOW() - INTERVAL '24 hours'
-      GROUP BY listing_id
+        SELECT
+          listing_id,
+          MAX(listing_title)  AS title,
+          MAX(listing_image)  AS image,
+          MAX(listing_price)  AS price,
+          MAX(listing_sport)  AS sport
+        FROM (
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM ratings  WHERE created_at > NOW() - INTERVAL '24 hours'
+          UNION ALL
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM comments  WHERE created_at > NOW() - INTERVAL '24 hours'
+          UNION ALL
+          SELECT listing_id, listing_title, listing_image, listing_price, listing_sport FROM reactions WHERE created_at > NOW() - INTERVAL '24 hours'
+        ) all_activity
+        GROUP BY listing_id
+      ) base
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*) AS cnt, ROUND(AVG(stars)::numeric, 1) AS avg_stars
+        FROM ratings WHERE created_at > NOW() - INTERVAL '24 hours'
+        GROUP BY listing_id
+      ) r  ON r.listing_id  = base.listing_id
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*) AS cnt
+        FROM comments WHERE created_at > NOW() - INTERVAL '24 hours'
+        GROUP BY listing_id
+      ) c  ON c.listing_id  = base.listing_id
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*) AS cnt
+        FROM reactions WHERE created_at > NOW() - INTERVAL '24 hours'
+        GROUP BY listing_id
+      ) rx ON rx.listing_id = base.listing_id
       ORDER BY score DESC
       LIMIT 10
     `);
