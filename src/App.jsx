@@ -116,7 +116,17 @@ function AppInner() {
         </div>
       </header>
 
-      <Ticker sales={sales} />
+      <Ticker sales={sales} onItemClick={(sale) => {
+        // Scroll the card into view if it's in the feed
+        const el = document.querySelector(`[data-sale-id="${sale.id}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('card-item--pulse');
+          setTimeout(() => el.classList.remove('card-item--pulse'), 1800);
+        }
+        // Open comment drawer
+        setCommentSale(sale);
+      }} />
 
       <div className="app-body">
         <div className="app-main">

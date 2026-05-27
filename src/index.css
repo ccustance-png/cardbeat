@@ -189,6 +189,28 @@ a:hover { text-decoration: underline; }
   padding-left: 10px;
 }
 
+.ticker-item--clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  transition: background 0.15s;
+}
+
+.ticker-item--clickable:hover {
+  background: color-mix(in srgb, var(--sport-color) 15%, transparent);
+}
+
+.ticker-comment-hint {
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: 2px;
+}
+
+.ticker-item--clickable:hover .ticker-comment-hint {
+  opacity: 1;
+}
+
 /* ── Sport Filter ── */
 .sport-filter {
   display: flex;
@@ -284,6 +306,18 @@ a:hover { text-decoration: underline; }
   border-color: var(--sport-color) !important;
   box-shadow: 0 0 12px color-mix(in srgb, var(--sport-color) 25%, transparent);
   animation: card-flash 2.5s ease-out forwards;
+}
+
+.card-item--pulse {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+  animation: card-pulse 1.8s ease-out forwards;
+}
+
+@keyframes card-pulse {
+  0%   { box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.6); }
+  50%  { box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.3); }
+  100% { box-shadow: none; border-color: var(--border); }
 }
 
 @keyframes card-flash {

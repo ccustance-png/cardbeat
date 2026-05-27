@@ -39,6 +39,7 @@ export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }
     <div
       className={`card-item ${highlight ? 'card-item--new' : ''}`}
       style={{ '--sport-color': sale.sportColor }}
+      data-sale-id={sale.id}
     >
       <div className="card-item__img-wrap">
         {href && href !== '#' ? (
