@@ -134,8 +134,8 @@ export default function ListingPage({ listingId }) {
     <div className="listing-page" style={{ '--sport-color': sportColor }}>
       <div className="listing-page__header">
         <a href="/" className="listing-back">← CardBeat</a>
-        <span className="listing-page__brand">CardBeat</span>
-        <span className="listing-page__tagline">Live eBay Sports Card Market</span>
+        <span className="listing-page__brand">Card<span style={{color:'var(--cb-violet)'}}>Beat</span></span>
+        <span className="listing-page__tagline">Live Sports Card Market</span>
       </div>
 
       <div className="listing-page__body">

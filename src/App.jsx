@@ -120,8 +120,8 @@ function AppInner() {
     <div className="app">
       <header className="app-header">
         <div className="app-header__left">
-          <h1 className="app-logo">CardBeat</h1>
-          <span className="app-tagline">Live eBay Sports Card Market</span>
+          <h1 className="app-logo">Card<span className="app-logo__beat">Beat</span></h1>
+          <span className="app-tagline">Live Sports Card Market</span>
         </div>
         <div className="app-header__right">
           <div className={`status-dot ${connected ? 'status-dot--live' : 'status-dot--offline'}`} />
