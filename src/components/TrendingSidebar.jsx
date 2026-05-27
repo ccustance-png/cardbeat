@@ -9,6 +9,7 @@ function fmt(price) {
 const SPORT_COLORS = {
   baseball: '#e63946', basketball: '#f4a261',
   football: '#2a9d8f', hockey: '#4895ef',
+  soccer: '#22c55e',
 };
 
 export default function TrendingSidebar({ onCardClick }) {

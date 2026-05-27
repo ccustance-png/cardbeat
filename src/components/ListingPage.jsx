@@ -4,8 +4,8 @@ import SocialBar from './SocialBar.jsx';
 import CommentDrawer from './CommentDrawer.jsx';
 import AuthModal from './AuthModal.jsx';
 
-const SPORT_COLORS = { baseball: '#e63946', basketball: '#f4a261', football: '#2a9d8f', hockey: '#4895ef' };
-const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒' };
+const SPORT_COLORS = { baseball: '#e63946', basketball: '#f4a261', football: '#2a9d8f', hockey: '#4895ef', soccer: '#22c55e' };
+const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒', soccer: '⚽' };
 
 function affiliateUrl(url) {
   if (!url || url === '#') return url;

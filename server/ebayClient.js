@@ -40,6 +40,7 @@ const SPORT_QUERIES = {
   basketball: 'basketball card',
   football: 'football card',
   hockey: 'hockey card',
+  soccer: 'soccer card',
 };
 
 const SPORT_COLORS = {
@@ -47,6 +48,7 @@ const SPORT_COLORS = {
   basketball: '#f4a261',
   football: '#2a9d8f',
   hockey: '#4895ef',
+  soccer: '#22c55e',
 };
 
 // Finding API — real completed/sold listings

@@ -4,6 +4,7 @@ const SPORT_COLORS = {
   basketball: '#f4a261',
   football: '#2a9d8f',
   hockey: '#4895ef',
+  soccer: '#22c55e',
 };
 
 const MOCK_CARDS = [
@@ -27,6 +28,11 @@ const MOCK_CARDS = [
   { title: '1979 O-Pee-Chee Wayne Gretzky RC PSA 7', sport: 'hockey', basePrice: 5400 },
   { title: '2017 Upper Deck Auston Matthews Auto /25 BGS 9', sport: 'hockey', basePrice: 340 },
   { title: '2020 Upper Deck Young Guns Alexis Lafreniere RC PSA 10', sport: 'hockey', basePrice: 120 },
+  { title: '2022 Panini Prizm World Cup Lionel Messi PSA 10', sport: 'soccer', basePrice: 340 },
+  { title: '2021 Topps Chrome Kylian Mbappe RC PSA 10', sport: 'soccer', basePrice: 280 },
+  { title: '2003 Panini Cristiano Ronaldo RC PSA 9', sport: 'soccer', basePrice: 1800 },
+  { title: '2022 Topps Chrome Erling Haaland RC PSA 10', sport: 'soccer', basePrice: 190 },
+  { title: '2018 Panini Prizm Neymar Jr Auto /25 BGS 9', sport: 'soccer', basePrice: 420 },
 ];
 
 let saleIdCounter = 1000;

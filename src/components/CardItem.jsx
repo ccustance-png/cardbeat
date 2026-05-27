@@ -20,8 +20,8 @@ function affiliateUrl(url) {
   return `https://rover.ebay.com/rover/1/711-53200-19255-0/1?ff3=4&pub=5575${campId}&toolid=10001&campid=${campId}&mpre=${encodeURIComponent(url)}`;
 }
 
-const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒' };
-const PLACEHOLDER_COLORS = { baseball: '#3d0f12', basketball: '#3d2008', football: '#0b2d28', hockey: '#0c1f3d' };
+const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒', soccer: '⚽' };
+const PLACEHOLDER_COLORS = { baseball: '#3d0f12', basketball: '#3d2008', football: '#0b2d28', hockey: '#0c1f3d', soccer: '#0a2e1a' };
 
 export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }) {
   const [highlight, setHighlight] = useState(isNew);
