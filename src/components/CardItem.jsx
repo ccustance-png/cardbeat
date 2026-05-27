@@ -41,22 +41,45 @@ export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }
       style={{ '--sport-color': sale.sportColor }}
     >
       <div className="card-item__img-wrap">
-        {sale.image ? (
-          <img
-            src={sale.image}
-            alt={sale.title}
-            className="card-item__img"
-            loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
-          />
-        ) : null}
-        <div
-          className="card-item__img-placeholder"
-          style={{ background: PLACEHOLDER_COLORS[sale.sport], display: sale.image ? 'none' : 'flex' }}
-        >
-          <span className="card-item__placeholder-icon">{SPORT_ICONS[sale.sport]}</span>
-          <span className="card-item__placeholder-title">{sale.title}</span>
-        </div>
+        {href && href !== '#' ? (
+          <a href={href} target="_blank" rel="noreferrer" className="card-item__img-link">
+            {sale.image ? (
+              <img
+                src={sale.image}
+                alt={sale.title}
+                className="card-item__img"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+              />
+            ) : null}
+            <div
+              className="card-item__img-placeholder"
+              style={{ background: PLACEHOLDER_COLORS[sale.sport], display: sale.image ? 'none' : 'flex' }}
+            >
+              <span className="card-item__placeholder-icon">{SPORT_ICONS[sale.sport]}</span>
+              <span className="card-item__placeholder-title">{sale.title}</span>
+            </div>
+          </a>
+        ) : (
+          <>
+            {sale.image ? (
+              <img
+                src={sale.image}
+                alt={sale.title}
+                className="card-item__img"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+              />
+            ) : null}
+            <div
+              className="card-item__img-placeholder"
+              style={{ background: PLACEHOLDER_COLORS[sale.sport], display: sale.image ? 'none' : 'flex' }}
+            >
+              <span className="card-item__placeholder-icon">{SPORT_ICONS[sale.sport]}</span>
+              <span className="card-item__placeholder-title">{sale.title}</span>
+            </div>
+          </>
+        )}
         <span className="card-item__sport-tag">{sale.sport}</span>
       </div>
 
