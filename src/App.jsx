@@ -58,6 +58,7 @@ function AppInner() {
   const [watchlistTerms, setWatchlistTerms] = useState(() => {
     try { return JSON.parse(localStorage.getItem('cb_watchlist') || '[]'); } catch { return []; }
   });
+  const [watchedOnly, setWatchedOnly] = useState(false);
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
   const feedPausedRef = useRef(false);
@@ -106,7 +107,15 @@ function AppInner() {
     if (user) {
       authFetch(`/api/watchlist/${encodeURIComponent(term)}`, { method: 'DELETE' }).catch(() => {});
     }
+    if (next.length === 0) setWatchedOnly(false);
   }
+
+  const watchedCount = watchlistTerms.length > 0
+    ? sales.filter(s => {
+        const t = (s.title || '').toLowerCase();
+        return watchlistTerms.some(term => t.includes(term));
+      }).length
+    : 0;
 
   const flashNew = useCallback((id) => {
     setNewSaleIds((prev) => new Set([...prev, id]));
@@ -198,12 +207,21 @@ function AppInner() {
 
       <div className="app-body">
         <div className="app-main">
-          <SportFilter active={activeSport} onChange={setActiveSport} counts={counts} />
+          <SportFilter
+            active={activeSport}
+            onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
+            counts={counts}
+            watchlistTerms={watchlistTerms}
+            watchedOnly={watchedOnly}
+            watchedCount={watchedCount}
+            onWatchedToggle={() => setWatchedOnly(v => !v)}
+          />
           <CardFeed
             sales={sales}
             activeSport={activeSport}
             newSaleIds={newSaleIds}
             watchlistTerms={watchlistTerms}
+            watchedOnly={watchedOnly}
             onCommentClick={setCommentSale}
             onAuthRequired={() => setAuthModalOpen(true)}
             onPause={pauseFeed}

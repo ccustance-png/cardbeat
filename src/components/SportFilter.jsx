@@ -7,14 +7,14 @@ const SPORTS = [
   { key: 'soccer', label: 'Soccer', color: '#22c55e' },
 ];
 
-export default function SportFilter({ active, onChange, counts }) {
+export default function SportFilter({ active, onChange, counts, watchlistTerms = [], watchedOnly, watchedCount, onWatchedToggle }) {
   return (
     <div className="sport-filter">
       {SPORTS.map(({ key, label, color }) => {
         const count = key === 'all'
           ? Object.values(counts).reduce((s, n) => s + n, 0)
           : (counts[key] || 0);
-        const isActive = active === key;
+        const isActive = !watchedOnly && active === key;
         return (
           <button
             key={key}
@@ -28,6 +28,17 @@ export default function SportFilter({ active, onChange, counts }) {
           </button>
         );
       })}
+
+      {watchlistTerms.length > 0 && (
+        <button
+          className={`sport-btn sport-btn--watched ${watchedOnly ? 'active' : ''}`}
+          onClick={onWatchedToggle}
+        >
+          <span className="sport-btn-dot" />
+          Watched
+          {watchedCount > 0 && <span className="sport-btn-count">{watchedCount}</span>}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,10 +1,17 @@
 import { useRef, useEffect } from 'react';
 import CardItem from './CardItem.jsx';
 
-export default function CardFeed({ sales, activeSport, newSaleIds, watchlistTerms = [], onCommentClick, onAuthRequired, onPause, onResume }) {
-  const filtered = activeSport === 'all'
+export default function CardFeed({ sales, activeSport, newSaleIds, watchlistTerms = [], watchedOnly = false, onCommentClick, onAuthRequired, onPause, onResume }) {
+  let filtered = activeSport === 'all'
     ? sales
     : sales.filter((s) => s.sport === activeSport);
+
+  if (watchedOnly && watchlistTerms.length > 0) {
+    filtered = filtered.filter(s => {
+      const t = (s.title || '').toLowerCase();
+      return watchlistTerms.some(term => t.includes(term));
+    });
+  }
 
   const prevCountRef = useRef(filtered.length);
 
@@ -15,7 +22,10 @@ export default function CardFeed({ sales, activeSport, newSaleIds, watchlistTerm
   if (!filtered.length) {
     return (
       <div className="feed-empty">
-        <p>Waiting for sales data…</p>
+        {watchedOnly
+          ? <p>No watched listings in the feed yet — they'll appear here as they come in.</p>
+          : <p>Waiting for sales data…</p>
+        }
       </div>
     );
   }
