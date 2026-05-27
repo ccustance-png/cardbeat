@@ -41,16 +41,16 @@ export default function ListingPage({ listingId }) {
     const headers = user ? { Authorization: `Bearer ${localStorage.getItem('cb_token')}` } : {};
     return fetch(`/api/social/listing/${listingId}`, { headers })
       .then(r => {
-        if (r.status === 404) return null;
+        if (!r.ok) return null; // 404, 500, or any error — don't parse as listing data
         return r.json();
       })
       .then(data => {
-        if (data) {
+        // Only update state if we got a real listing with a title
+        if (data?.title) {
           setListing(data);
           setLoading(false);
         }
-        // If DB returns nothing, we either already loaded from cache or will show not-found below
-        return data;
+        return data?.title ? data : null;
       })
       .catch(() => null);
   }, [listingId, user]);

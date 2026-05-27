@@ -117,29 +117,37 @@ router.get('/listing/:listingId', optionalAuth, async (req, res) => {
   const { listingId } = req.params;
   const userId = req.user?.id || null;
   try {
-    // Check the dedicated listings table first (most reliable),
-    // then fall back to interaction tables for cards shared before this feature
-    const metaRes = await query(`
-      SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
-      FROM listings WHERE listing_id = $1
-      UNION ALL
-      SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
-      FROM (
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM ratings        WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
-        UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM comments       WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
-        UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM reactions      WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
-        UNION ALL
-        SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM saved_listings WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
-      ) fallback LIMIT 1
-      LIMIT 1
-    `, [listingId]);
+    // Look up metadata — try the dedicated listings table first, then fall back to
+    // interaction tables. Run separately so a missing listings table doesn't crash everything.
+    let meta = null;
 
-    if (!metaRes.rows.length) return res.status(404).json({ error: 'Listing not found' });
-    const meta = metaRes.rows[0];
-    // Guard against rows with null metadata (e.g. from a bad earlier insert)
-    if (!meta.listing_title) return res.status(404).json({ error: 'Listing not found' });
+    try {
+      const r = await query(
+        `SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
+         FROM listings WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1`,
+        [listingId]
+      );
+      if (r.rows.length) meta = r.rows[0];
+    } catch {}
+
+    if (!meta) {
+      const r = await query(
+        `SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url
+         FROM (
+           SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM ratings        WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
+           UNION ALL
+           SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM comments       WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
+           UNION ALL
+           SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM reactions      WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
+           UNION ALL
+           SELECT listing_id, listing_title, listing_image, listing_price, listing_sport, listing_url FROM saved_listings WHERE listing_id = $1 AND listing_title IS NOT NULL LIMIT 1
+         ) fallback LIMIT 1`,
+        [listingId]
+      );
+      if (r.rows.length) meta = r.rows[0];
+    }
+
+    if (!meta) return res.status(404).json({ error: 'Listing not found' });
 
     const [ratingsRes, reactionsRes, commentsRes, myRatingRes, myReactionsRes, savedRes] = await Promise.all([
       query(`SELECT ROUND(AVG(stars)::numeric, 1) as avg, COUNT(*) as count FROM ratings WHERE listing_id = $1`, [listingId]),
