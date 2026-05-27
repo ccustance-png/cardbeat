@@ -79,6 +79,19 @@ export async function migrate() {
       content TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS saved_listings (
+      id SERIAL PRIMARY KEY,
+      listing_id VARCHAR(255) NOT NULL,
+      listing_title TEXT,
+      listing_image TEXT,
+      listing_price DECIMAL,
+      listing_sport VARCHAR(50),
+      listing_url TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(listing_id, user_id)
+    );
   `);
   console.log('[DB] Schema ready');
 }

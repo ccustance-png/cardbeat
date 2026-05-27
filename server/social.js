@@ -18,6 +18,22 @@ function listingMeta(body) {
 
 // IMPORTANT: specific routes must come BEFORE /:listingId wildcard
 
+// GET /api/social/saved — current user's saved listings
+router.get('/saved', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT listing_id, listing_title AS title, listing_image AS image,
+              listing_price AS price, listing_sport AS sport, listing_url AS item_url, created_at
+       FROM saved_listings WHERE user_id = $1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('[Social] saved error:', err.message);
+    res.json([]);
+  }
+});
+
 // GET /api/social/trending/top — top listings by engagement score in last 24h
 router.get('/trending/top', async (_req, res) => {
   try {
@@ -80,12 +96,13 @@ router.get('/:listingId', optionalAuth, async (req, res) => {
   const userId = req.user?.id || null;
 
   try {
-    const [ratingsRes, reactionsRes, commentsRes, myRatingRes, myReactionsRes] = await Promise.all([
+    const [ratingsRes, reactionsRes, commentsRes, myRatingRes, myReactionsRes, savedRes] = await Promise.all([
       query(`SELECT ROUND(AVG(stars)::numeric, 1) as avg, COUNT(*) as count FROM ratings WHERE listing_id = $1`, [listingId]),
       query(`SELECT emoji, COUNT(*) as count FROM reactions WHERE listing_id = $1 GROUP BY emoji`, [listingId]),
       query(`SELECT c.id, c.content, c.created_at, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.listing_id = $1 ORDER BY c.created_at DESC LIMIT 20`, [listingId]),
       userId ? query(`SELECT stars FROM ratings WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
       userId ? query(`SELECT emoji FROM reactions WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
+      userId ? query(`SELECT id FROM saved_listings WHERE listing_id = $1 AND user_id = $2`, [listingId, userId]) : Promise.resolve({ rows: [] }),
     ]);
 
     res.json({
@@ -97,10 +114,11 @@ router.get('/:listingId', optionalAuth, async (req, res) => {
       reactions: reactionsRes.rows.map(r => ({ emoji: r.emoji, count: parseInt(r.count) })),
       myReactions: myReactionsRes.rows.map(r => r.emoji),
       comments: commentsRes.rows,
+      isSaved: savedRes.rows.length > 0,
     });
   } catch (err) {
     console.error('[Social] get error:', err.message);
-    res.json({ rating: { avg: null, count: 0, myStars: null }, reactions: [], myReactions: [], comments: [] });
+    res.json({ rating: { avg: null, count: 0, myStars: null }, reactions: [], myReactions: [], comments: [], isSaved: false });
   }
 });
 
@@ -173,6 +191,32 @@ router.post('/:listingId/comment', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[Social] comment error:', err.message);
     res.status(500).json({ error: 'Comment failed' });
+  }
+});
+
+// POST /api/social/:listingId/save — toggle save/unsave
+router.post('/:listingId/save', authMiddleware, async (req, res) => {
+  const { listingId } = req.params;
+  const meta = listingMeta(req.body);
+  try {
+    const existing = await query(
+      `SELECT id FROM saved_listings WHERE listing_id = $1 AND user_id = $2`,
+      [listingId, req.user.id]
+    );
+    if (existing.rows.length) {
+      await query(`DELETE FROM saved_listings WHERE listing_id = $1 AND user_id = $2`, [listingId, req.user.id]);
+      res.json({ saved: false });
+    } else {
+      await query(
+        `INSERT INTO saved_listings (listing_id, user_id, listing_title, listing_image, listing_price, listing_sport, listing_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [listingId, req.user.id, meta.listing_title, meta.listing_image, meta.listing_price, meta.listing_sport, meta.listing_url]
+      );
+      res.json({ saved: true });
+    }
+  } catch (err) {
+    console.error('[Social] save error:', err.message);
+    res.status(500).json({ error: 'Save failed' });
   }
 });
 

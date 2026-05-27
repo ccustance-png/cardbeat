@@ -31,6 +31,7 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
   const { user, authFetch } = useAuth();
   const [social, setSocial] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!sale?.id) return;
@@ -38,7 +39,7 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
       headers: user ? { Authorization: `Bearer ${localStorage.getItem('cb_token')}` } : {},
     })
       .then(r => r.ok ? r.json() : null)
-      .then(setSocial)
+      .then(data => { setSocial(data); setSaved(data?.isSaved ?? false); })
       .catch(() => {});
   }, [sale?.id, user]);
 
@@ -53,6 +54,18 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
       const data = await r.json();
       setSocial(s => ({ ...s, rating: { ...data, myStars: stars } }));
     } finally { setLoading(false); }
+  }
+
+  async function toggleSave() {
+    if (!user) return onAuthRequired();
+    try {
+      const r = await authFetch(`/api/social/${sale.id}/save`, {
+        method: 'POST',
+        body: JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl }),
+      });
+      const data = await r.json();
+      setSaved(data.saved);
+    } catch {}
   }
 
   async function react(emoji) {
@@ -100,9 +113,18 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
           );
         })}
       </div>
-      <button className="comment-btn" onClick={onCommentClick}>
-        💬 {commentCount > 0 ? commentCount : 'Comment'}
-      </button>
+      <div className="social-bar__bottom">
+        <button className="comment-btn" onClick={onCommentClick}>
+          💬 {commentCount > 0 ? commentCount : 'Comment'}
+        </button>
+        <button
+          className={`save-btn ${saved ? 'save-btn--saved' : ''}`}
+          onClick={toggleSave}
+          title={saved ? 'Remove from saved' : 'Save listing'}
+        >
+          {saved ? '🔖 Saved' : '🔖 Save'}
+        </button>
+      </div>
     </div>
   );
 }

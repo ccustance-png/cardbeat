@@ -7,14 +7,16 @@ import CardFeed from './components/CardFeed.jsx';
 import TrendingSidebar from './components/TrendingSidebar.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import CommentDrawer from './components/CommentDrawer.jsx';
+import SavedDrawer from './components/SavedDrawer.jsx';
 
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
 const NEW_SALE_FLASH_MS = 3000;
 
-function HeaderAuth({ onSignIn }) {
+function HeaderAuth({ onSignIn, onSavedOpen }) {
   const { user, logout } = useAuth();
   return user ? (
     <div className="header-user">
+      <button className="header-saved-btn" onClick={onSavedOpen}>🔖 Saved</button>
       <span className="header-username">@{user.username}</span>
       <button className="header-signout" onClick={logout}>Sign out</button>
     </div>
@@ -31,6 +33,7 @@ function AppInner() {
   const [totalSeen, setTotalSeen] = useState(0);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [commentSale, setCommentSale] = useState(null);
+  const [savedOpen, setSavedOpen] = useState(false);
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
   const feedPausedRef = useRef(false);
@@ -112,7 +115,7 @@ function AppInner() {
           {totalSeen > 0 && (
             <span className="total-seen">{totalSeen.toLocaleString()} listings</span>
           )}
-          <HeaderAuth onSignIn={() => setAuthModalOpen(true)} />
+          <HeaderAuth onSignIn={() => setAuthModalOpen(true)} onSavedOpen={() => setSavedOpen(true)} />
         </div>
       </header>
 
@@ -147,6 +150,12 @@ function AppInner() {
         }} />
       </div>
 
+      {savedOpen && (
+        <SavedDrawer
+          onClose={() => setSavedOpen(false)}
+          onCommentClick={(sale) => { setSavedOpen(false); setCommentSale(sale); }}
+        />
+      )}
       {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
       {commentSale && (
         <CommentDrawer
