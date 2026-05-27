@@ -3,14 +3,20 @@ import 'dotenv/config';
 
 const { Pool } = pg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('railway') || process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false }
-    : false,
-});
+let pool = null;
+
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL?.includes('railway') || process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
+    connectionTimeoutMillis: 5000,
+  });
+}
 
 export async function query(text, params) {
+  if (!pool) throw new Error('Database not configured. Add a PostgreSQL service in Railway.');
   const client = await pool.connect();
   try {
     return await client.query(text, params);
