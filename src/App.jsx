@@ -121,15 +121,13 @@ function AppInner() {
       </header>
 
       <Ticker sales={sales} onItemClick={(sale) => {
-        // Scroll the card into view if it's in the feed
-        const el = document.querySelector(`[data-sale-id="${sale.id}"]`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add('card-item--pulse');
-          setTimeout(() => el.classList.remove('card-item--pulse'), 1800);
-        }
-        // Open comment drawer
-        setCommentSale(sale);
+        // Register metadata so the permalink page always loads
+        fetch(`/api/social/${sale.id}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl }),
+        }).catch(() => {});
+        window.open(`/listing/${sale.id}`, '_blank');
       }} />
 
       <div className="app-body">
@@ -146,31 +144,7 @@ function AppInner() {
           />
         </div>
         <TrendingSidebar onCardClick={(item) => {
-          // Try to find the live card in the feed first (for scroll + pulse)
-          const liveSale = sales.find(s => s.id === item.listing_id);
-          if (liveSale) {
-            const el = document.querySelector(`[data-sale-id="${liveSale.id}"]`);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              el.classList.add('card-item--pulse');
-              setTimeout(() => el.classList.remove('card-item--pulse'), 1800);
-            }
-            setCommentSale(liveSale);
-          } else {
-            // Card not in current feed — build from trending item's stored metadata
-            const SPORT_COLORS = { baseball: '#e63946', basketball: '#f4a261', football: '#2a9d8f', hockey: '#4895ef' };
-            setCommentSale({
-              id: item.listing_id,
-              title: item.title,
-              image: item.image,
-              price: parseFloat(item.price) || 0,
-              sport: item.sport,
-              sportColor: SPORT_COLORS[item.sport] || '#a1a1aa',
-              itemUrl: item.item_url,
-              condition: '',
-              soldAt: new Date().toISOString(),
-            });
-          }
+          window.open(`/listing/${item.listing_id}`, '_blank');
         }} />
       </div>
 
