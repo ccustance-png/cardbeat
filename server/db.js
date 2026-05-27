@@ -113,6 +113,14 @@ export async function migrate() {
       listing_url TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS watchlist_terms (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      term VARCHAR(100) NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, term)
+    );
   `);
   console.log('[DB] Schema ready');
 }

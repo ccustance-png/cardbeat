@@ -23,7 +23,7 @@ function affiliateUrl(url) {
 const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒', soccer: '⚽' };
 const PLACEHOLDER_COLORS = { baseball: '#3d0f12', basketball: '#3d2008', football: '#0b2d28', hockey: '#0c1f3d', soccer: '#0a2e1a' };
 
-export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }) {
+export default function CardItem({ sale, isNew, isWatched, onCommentClick, onAuthRequired }) {
   const [highlight, setHighlight] = useState(isNew);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }
 
   return (
     <div
-      className={`card-item ${highlight ? 'card-item--new' : ''}`}
+      className={`card-item ${highlight ? 'card-item--new' : ''} ${isWatched ? 'card-item--watched' : ''}`}
       style={{ '--sport-color': sale.sportColor }}
       data-sale-id={sale.id}
     >
@@ -82,6 +82,7 @@ export default function CardItem({ sale, isNew, onCommentClick, onAuthRequired }
           </>
         )}
         <span className="card-item__sport-tag">{sale.sport}</span>
+        {isWatched && <span className="card-item__watch-badge">👁 Watched</span>}
       </div>
 
       <div className="card-item__body">

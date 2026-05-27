@@ -11,6 +11,7 @@ import { addSale, getSales } from './store.js';
 import { migrate } from './db.js';
 import authRouter from './auth.js';
 import socialRouter from './social.js';
+import watchlistRouter from './watchlist.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -28,6 +29,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/social', socialRouter);
+app.use('/api/watchlist', watchlistRouter);
 
 app.get('/api/sales', (req, res) => {
   const { sport, limit } = req.query;

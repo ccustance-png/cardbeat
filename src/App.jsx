@@ -8,6 +8,7 @@ import TrendingSidebar from './components/TrendingSidebar.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import CommentDrawer from './components/CommentDrawer.jsx';
 import SavedDrawer from './components/SavedDrawer.jsx';
+import WatchlistDrawer from './components/WatchlistDrawer.jsx';
 import ListingPage from './components/ListingPage.jsx';
 
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
@@ -26,20 +27,25 @@ function openListing(id, meta) {
   window.open(`/listing/${id}`, '_blank');
 }
 
-function HeaderAuth({ onSignIn, onSavedOpen }) {
+function HeaderAuth({ onSignIn, onSavedOpen, onWatchlistOpen }) {
   const { user, logout } = useAuth();
   return user ? (
     <div className="header-user">
+      <button className="header-watchlist-btn" onClick={onWatchlistOpen}>👁 Watchlist</button>
       <button className="header-saved-btn" onClick={onSavedOpen}>🔖 Saved</button>
       <span className="header-username">@{user.username}</span>
       <button className="header-signout" onClick={logout}>Sign out</button>
     </div>
   ) : (
-    <button className="header-signin" onClick={onSignIn}>Sign in</button>
+    <>
+      <button className="header-watchlist-btn" onClick={onWatchlistOpen}>👁 Watchlist</button>
+      <button className="header-signin" onClick={onSignIn}>Sign in</button>
+    </>
   );
 }
 
 function AppInner() {
+  const { user, authFetch } = useAuth();
   const [sales, setSales] = useState([]);
   const [activeSport, setActiveSport] = useState('all');
   const [newSaleIds, setNewSaleIds] = useState(new Set());
@@ -48,10 +54,59 @@ function AppInner() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [commentSale, setCommentSale] = useState(null);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [watchlistOpen, setWatchlistOpen] = useState(false);
+  const [watchlistTerms, setWatchlistTerms] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cb_watchlist') || '[]'); } catch { return []; }
+  });
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
   const feedPausedRef = useRef(false);
   const pendingRef = useRef([]);
+
+  // Sync watchlist with server when user logs in/out
+  useEffect(() => {
+    if (!user) return;
+    authFetch('/api/watchlist')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.terms) {
+          const serverTerms = data.terms.map(t => t.term);
+          // Merge: push any local-only terms to server, then use server list
+          const localTerms = JSON.parse(localStorage.getItem('cb_watchlist') || '[]');
+          const toSync = localTerms.filter(t => !serverTerms.includes(t));
+          toSync.forEach(term => {
+            authFetch('/api/watchlist', {
+              method: 'POST',
+              body: JSON.stringify({ term }),
+            }).catch(() => {});
+          });
+          const merged = [...new Set([...serverTerms, ...toSync])];
+          setWatchlistTerms(merged);
+          try { localStorage.setItem('cb_watchlist', JSON.stringify(merged)); } catch {}
+        }
+      })
+      .catch(() => {});
+  }, [user, authFetch]);
+
+  function addWatchlistTerm(term) {
+    const val = term.trim().toLowerCase();
+    if (!val || watchlistTerms.includes(val)) return;
+    const next = [...watchlistTerms, val];
+    setWatchlistTerms(next);
+    try { localStorage.setItem('cb_watchlist', JSON.stringify(next)); } catch {}
+    if (user) {
+      authFetch('/api/watchlist', { method: 'POST', body: JSON.stringify({ term: val }) }).catch(() => {});
+    }
+  }
+
+  function removeWatchlistTerm(term) {
+    const next = watchlistTerms.filter(t => t !== term);
+    setWatchlistTerms(next);
+    try { localStorage.setItem('cb_watchlist', JSON.stringify(next)); } catch {}
+    if (user) {
+      authFetch(`/api/watchlist/${encodeURIComponent(term)}`, { method: 'DELETE' }).catch(() => {});
+    }
+  }
 
   const flashNew = useCallback((id) => {
     setNewSaleIds((prev) => new Set([...prev, id]));
@@ -129,7 +184,11 @@ function AppInner() {
           {totalSeen > 0 && (
             <span className="total-seen">{totalSeen.toLocaleString()} listings</span>
           )}
-          <HeaderAuth onSignIn={() => setAuthModalOpen(true)} onSavedOpen={() => setSavedOpen(true)} />
+          <HeaderAuth
+            onSignIn={() => setAuthModalOpen(true)}
+            onSavedOpen={() => setSavedOpen(true)}
+            onWatchlistOpen={() => setWatchlistOpen(true)}
+          />
         </div>
       </header>
 
@@ -144,6 +203,7 @@ function AppInner() {
             sales={sales}
             activeSport={activeSport}
             newSaleIds={newSaleIds}
+            watchlistTerms={watchlistTerms}
             onCommentClick={setCommentSale}
             onAuthRequired={() => setAuthModalOpen(true)}
             onPause={pauseFeed}
@@ -159,6 +219,15 @@ function AppInner() {
         <SavedDrawer
           onClose={() => setSavedOpen(false)}
           onCommentClick={(sale) => { setSavedOpen(false); setCommentSale(sale); }}
+        />
+      )}
+      {watchlistOpen && (
+        <WatchlistDrawer
+          terms={watchlistTerms}
+          onAdd={addWatchlistTerm}
+          onRemove={removeWatchlistTerm}
+          onClose={() => setWatchlistOpen(false)}
+          onAuthRequired={() => { setWatchlistOpen(false); setAuthModalOpen(true); }}
         />
       )}
       {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
