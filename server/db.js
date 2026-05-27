@@ -8,10 +8,14 @@ let pool = null;
 if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes('railway') || process.env.NODE_ENV === 'production'
-      ? { rejectUnauthorized: false }
-      : false,
-    connectionTimeoutMillis: 5000,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 8000,
+    idleTimeoutMillis: 30000,
+    max: 10,
+  });
+
+  pool.on('error', (err) => {
+    console.error('[DB] Pool error (non-fatal):', err.message);
   });
 }
 

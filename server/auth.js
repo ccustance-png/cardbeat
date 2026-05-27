@@ -70,8 +70,13 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', authMiddleware, async (req, res) => {
-  const { rows } = await query('SELECT id, username, email FROM users WHERE id = $1', [req.user.id]);
-  res.json(rows[0] || null);
+  try {
+    const { rows } = await query('SELECT id, username, email FROM users WHERE id = $1', [req.user.id]);
+    res.json(rows[0] || null);
+  } catch (err) {
+    console.error('[Auth] /me error:', err.message);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 export default router;
