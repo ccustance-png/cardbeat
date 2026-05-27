@@ -33,6 +33,8 @@ function AppInner() {
   const [commentSale, setCommentSale] = useState(null);
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
+  const feedPausedRef = useRef(false);
+  const pendingRef = useRef([]);
 
   const flashNew = useCallback((id) => {
     setNewSaleIds((prev) => new Set([...prev, id]));
@@ -47,6 +49,25 @@ function AppInner() {
     }, NEW_SALE_FLASH_MS);
   }, []);
 
+  const addSaleToFeed = useCallback((sale) => {
+    setSales((prev) => {
+      if (prev.find((s) => s.id === sale.id)) return prev;
+      return [sale, ...prev].slice(0, 500);
+    });
+    setTotalSeen((n) => n + 1);
+    flashNew(sale.id);
+  }, [flashNew]);
+
+  const pauseFeed = useCallback(() => {
+    feedPausedRef.current = true;
+  }, []);
+
+  const resumeFeed = useCallback(() => {
+    feedPausedRef.current = false;
+    const pending = pendingRef.current.splice(0);
+    pending.forEach(addSaleToFeed);
+  }, [addSaleToFeed]);
+
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
     socketRef.current = socket;
@@ -60,19 +81,18 @@ function AppInner() {
     });
 
     socket.on('newSale', (sale) => {
-      setSales((prev) => {
-        if (prev.find((s) => s.id === sale.id)) return prev;
-        return [sale, ...prev].slice(0, 500);
-      });
-      setTotalSeen((n) => n + 1);
-      flashNew(sale.id);
+      if (feedPausedRef.current) {
+        pendingRef.current.push(sale);
+        return;
+      }
+      addSaleToFeed(sale);
     });
 
     return () => {
       socket.disconnect();
       Object.values(newIdsTimers.current).forEach(clearTimeout);
     };
-  }, [flashNew]);
+  }, [addSaleToFeed]);
 
   const counts = sales.reduce((acc, s) => {
     acc[s.sport] = (acc[s.sport] || 0) + 1;
@@ -107,6 +127,8 @@ function AppInner() {
             newSaleIds={newSaleIds}
             onCommentClick={setCommentSale}
             onAuthRequired={() => setAuthModalOpen(true)}
+            onPause={pauseFeed}
+            onResume={resumeFeed}
           />
         </div>
         <TrendingSidebar onCardClick={(item) => {

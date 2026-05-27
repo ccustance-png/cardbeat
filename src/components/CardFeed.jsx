@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import CardItem from './CardItem.jsx';
 
-export default function CardFeed({ sales, activeSport, newSaleIds, onCommentClick, onAuthRequired }) {
+export default function CardFeed({ sales, activeSport, newSaleIds, onCommentClick, onAuthRequired, onPause, onResume }) {
   const filtered = activeSport === 'all'
     ? sales
     : sales.filter((s) => s.sport === activeSport);
@@ -21,7 +21,7 @@ export default function CardFeed({ sales, activeSport, newSaleIds, onCommentClic
   }
 
   return (
-    <div className="card-feed">
+    <div className="card-feed" onMouseEnter={onPause} onMouseLeave={onResume}>
       {filtered.map((sale) => (
         <CardItem
           key={sale.id}
