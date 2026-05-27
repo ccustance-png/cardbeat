@@ -3,35 +3,12 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const EMOJIS = ['🔥', '💎', '🚀', '💩', '🤔'];
 
-function Stars({ myStars, avg, count, onRate, disabled }) {
-  const [hover, setHover] = useState(0);
-  return (
-    <div className="stars-wrap">
-      <div className="stars">
-        {[1,2,3,4,5].map(n => (
-          <button
-            key={n}
-            className={`star ${(hover || myStars || 0) >= n ? 'star--on' : ''}`}
-            onMouseEnter={() => !disabled && setHover(n)}
-            onMouseLeave={() => setHover(0)}
-            onClick={() => !disabled && onRate(n)}
-            disabled={disabled}
-            title={disabled ? 'Sign in to rate' : `Rate ${n} star${n > 1 ? 's' : ''}`}
-          >★</button>
-        ))}
-      </div>
-      {count > 0 && (
-        <span className="stars-meta">{avg} <span className="stars-count">({count})</span></span>
-      )}
-    </div>
-  );
-}
-
 export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
   const { user, authFetch } = useAuth();
   const [social, setSocial] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState(false);
 
   useEffect(() => {
     if (!sale?.id) return;
@@ -54,6 +31,20 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
       const data = await r.json();
       setSocial(s => ({ ...s, rating: { ...data, myStars: stars } }));
     } finally { setLoading(false); }
+  }
+
+  async function share() {
+    const url = sale.itemUrl || window.location.href;
+    const text = `${sale.title} — ${sale.price ? `$${parseFloat(sale.price).toFixed(2)}` : ''} on CardBeat`;
+    if (navigator.share) {
+      try { await navigator.share({ title: sale.title, text, url }); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareFeedback(true);
+        setTimeout(() => setShareFeedback(false), 2000);
+      } catch {}
+    }
   }
 
   async function toggleSave() {
@@ -90,13 +81,6 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
 
   return (
     <div className="social-bar">
-      <Stars
-        myStars={social?.rating?.myStars}
-        avg={social?.rating?.avg}
-        count={social?.rating?.count}
-        onRate={rate}
-        disabled={loading}
-      />
       <div className="emoji-row">
         {EMOJIS.map(emoji => {
           const count = social?.reactions?.find(r => r.emoji === emoji)?.count || 0;
@@ -123,6 +107,13 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
           title={saved ? 'Remove from saved' : 'Save listing'}
         >
           {saved ? '🔖 Saved' : '🔖 Save'}
+        </button>
+        <button
+          className={`share-btn ${shareFeedback ? 'share-btn--copied' : ''}`}
+          onClick={share}
+          title="Share listing"
+        >
+          {shareFeedback ? '✓ Copied!' : '↑ Share'}
         </button>
       </div>
     </div>

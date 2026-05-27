@@ -848,40 +848,6 @@ a:hover { text-decoration: underline; }
   margin-top: 4px;
 }
 
-.stars-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stars {
-  display: flex;
-  gap: 2px;
-}
-
-.star {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 0 1px;
-  line-height: 1;
-  transition: color 0.1s, transform 0.1s;
-}
-
-.star--on { color: #f59e0b; }
-.star:hover { transform: scale(1.2); }
-.star:disabled { cursor: default; opacity: 0.5; }
-
-.stars-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: var(--mono);
-}
-
-.stars-count { color: var(--text-dim); }
-
 .emoji-row {
   display: flex;
   gap: 4px;
@@ -934,6 +900,7 @@ a:hover { text-decoration: underline; }
   font-size: 12px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
+  margin-right: auto;
 }
 
 .comment-btn:hover {
@@ -951,7 +918,29 @@ a:hover { text-decoration: underline; }
   font-size: 12px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
-  margin-left: auto;
+}
+
+.share-btn {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.share-btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.share-btn--copied {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: color-mix(in srgb, #22c55e 10%, var(--bg));
 }
 
 .save-btn:hover {
