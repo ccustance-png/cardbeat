@@ -75,53 +75,63 @@ async function pollEbay() {
   }
 }
 
-// Cards seeded from Browse API (have real images) — used by drip generator
-let realCards = [];
+// Queue of real Browse listings waiting to drip into the feed
+let dripQueue = [];
+
+async function refillDripQueue() {
+  if (!process.env.EBAY_CLIENT_ID) return;
+  try {
+    console.log('[Mock] Refilling drip queue from eBay Browse API…');
+    const fresh = await fetchBrowseAllSports(30); // 30 per sport = up to 120 cards
+    // Only queue cards not already in the store (addSale handles dedup by id)
+    dripQueue.push(...fresh);
+    console.log(`[Mock] Drip queue refilled: ${dripQueue.length} cards`);
+  } catch (err) {
+    console.warn('[Mock] Browse refill failed:', err.message);
+  }
+}
 
 async function startMockMode() {
   console.log('[Mock] Starting mock sale generator');
 
-  // Try to seed with real Browse API listings (gives us real card images)
+  // Seed initial feed with real Browse listings
   if (process.env.EBAY_CLIENT_ID) {
     try {
-      console.log('[Mock] Seeding with real eBay Browse listings for images…');
-      realCards = await fetchBrowseAllSports(20);
-      console.log(`[Mock] Seeded ${realCards.length} real listings`);
-      realCards.forEach((c) => addSale(c));
+      console.log('[Mock] Seeding initial feed from eBay Browse API…');
+      const initial = await fetchBrowseAllSports(20); // 20 per sport = up to 80 cards
+      initial.forEach((c) => addSale(c));
+      console.log(`[Mock] Initial feed seeded: ${initial.length} listings`);
+
+      // Fetch a larger batch for the drip queue (different window via higher limit)
+      await refillDripQueue();
     } catch (err) {
       console.warn('[Mock] Browse seed failed, using static mock data:', err.message);
     }
   }
 
-  // Fall back to static mock data if Browse seed didn't populate anything
-  if (realCards.length === 0) {
-    const initial = generateMockSales(40);
-    initial.forEach((s) => addSale(s));
+  // Fall back to static mock data if nothing loaded
+  if (getSales(null, 1).length === 0) {
+    generateMockSales(40).forEach((s) => addSale(s));
   }
 
-  // Drip new sales every 3–8 seconds, preferring real card images when available
-  function dropSale() {
-    const sale = realCards.length > 0
-      ? makeDripFromReal(realCards[Math.floor(Math.random() * realCards.length)])
-      : generateMockSale();
-    broadcastSale(sale);
-    setTimeout(dropSale, 3000 + Math.random() * 5000);
+  // Drip real listings one at a time; each has its real price and real eBay ID
+  async function dropSale() {
+    if (dripQueue.length === 0) {
+      await refillDripQueue();
+    }
+
+    if (dripQueue.length > 0) {
+      const card = dripQueue.shift();
+      // Stamp a fresh "listed at" time so it appears new in the feed
+      broadcastSale({ ...card, soldAt: new Date().toISOString() });
+    } else {
+      // No Browse data available — fall back to a generated mock
+      broadcastSale(generateMockSale());
+    }
+
+    setTimeout(dropSale, 4000 + Math.random() * 6000);
   }
-  setTimeout(dropSale, 2000);
-}
-
-let dripIdCounter = 9000;
-
-function makeDripFromReal(card) {
-  const variance = 0.15 + Math.random() * 0.2;
-  const sign = Math.random() > 0.45 ? 1 : -1;
-  const price = Math.max(1, parseFloat((card.price * (1 + sign * variance)).toFixed(2)));
-  return {
-    ...card,
-    id: `drip-${dripIdCounter++}`,
-    price,
-    soldAt: new Date().toISOString(),
-  };
+  setTimeout(dropSale, 3000);
 }
 
 async function startLiveMode() {
