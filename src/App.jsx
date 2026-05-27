@@ -13,6 +13,19 @@ import ListingPage from './components/ListingPage.jsx';
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
 const NEW_SALE_FLASH_MS = 3000;
 
+// Store card metadata locally + in DB so the permalink page always loads,
+// then open the listing in a new tab. localStorage is shared across same-origin
+// tabs so the new tab can read it immediately before the DB write finishes.
+function openListing(id, meta) {
+  try { localStorage.setItem(`cb_listing_${id}`, JSON.stringify(meta)); } catch {}
+  fetch(`/api/social/${id}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(meta),
+  }).catch(() => {});
+  window.open(`/listing/${id}`, '_blank');
+}
+
 function HeaderAuth({ onSignIn, onSavedOpen }) {
   const { user, logout } = useAuth();
   return user ? (
@@ -121,13 +134,7 @@ function AppInner() {
       </header>
 
       <Ticker sales={sales} onItemClick={(sale) => {
-        // Register metadata so the permalink page always loads
-        fetch(`/api/social/${sale.id}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl }),
-        }).catch(() => {});
-        window.open(`/listing/${sale.id}`, '_blank');
+        openListing(sale.id, { title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl });
       }} />
 
       <div className="app-body">
@@ -144,7 +151,7 @@ function AppInner() {
           />
         </div>
         <TrendingSidebar onCardClick={(item) => {
-          window.open(`/listing/${item.listing_id}`, '_blank');
+          openListing(item.listing_id, { title: item.title, image: item.image, price: item.price, sport: item.sport, itemUrl: item.item_url });
         }} />
       </div>
 

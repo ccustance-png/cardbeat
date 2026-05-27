@@ -39,16 +39,54 @@ export default function ListingPage({ listingId }) {
 
   const fetchListing = useCallback(() => {
     const headers = user ? { Authorization: `Bearer ${localStorage.getItem('cb_token')}` } : {};
-    fetch(`/api/social/listing/${listingId}`, { headers })
+    return fetch(`/api/social/listing/${listingId}`, { headers })
       .then(r => {
-        if (r.status === 404) { setNotFound(true); setLoading(false); return null; }
+        if (r.status === 404) return null;
         return r.json();
       })
-      .then(data => { if (data) setListing(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(data => {
+        if (data) {
+          setListing(data);
+          setLoading(false);
+        }
+        // If DB returns nothing, we either already loaded from cache or will show not-found below
+        return data;
+      })
+      .catch(() => null);
   }, [listingId, user]);
 
-  useEffect(() => { fetchListing(); }, [fetchListing]);
+  useEffect(() => {
+    // 1. Check localStorage for an instant render — set when user clicked ticker/trending/share
+    let loadedFromCache = false;
+    try {
+      const cached = localStorage.getItem(`cb_listing_${listingId}`);
+      if (cached) {
+        const meta = JSON.parse(cached);
+        if (meta?.title) {
+          setListing({
+            id: listingId,
+            title: meta.title,
+            image: meta.image,
+            price: meta.price,
+            sport: meta.sport,
+            itemUrl: meta.itemUrl,
+            social: { rating: { avg: null, count: 0, myStars: null }, reactions: [], myReactions: [], comments: [], isSaved: false },
+          });
+          setLoading(false);
+          loadedFromCache = true;
+        }
+      }
+    } catch {}
+
+    // 2. Always fetch from DB — updates social data (comments/reactions/saves)
+    //    and handles listings that weren't cached (e.g. shared links on another device)
+    fetchListing().then(data => {
+      if (!data && !loadedFromCache) {
+        setNotFound(true);
+        setLoading(false);
+      }
+    });
+  }, [fetchListing, listingId]);
 
   if (loading) {
     return (

@@ -36,7 +36,8 @@ export default function SocialBar({ sale, onCommentClick, onAuthRequired }) {
   async function share() {
     const shareUrl = `${window.location.origin}/listing/${sale.id}`;
     const text = `${sale.title}${sale.price ? ` — $${parseFloat(sale.price).toFixed(2)}` : ''} on CardBeat`;
-    // Register metadata so the permalink page always has something to show
+    // Store in localStorage (instant for same-browser visits) + register in DB (for future/external visits)
+    try { localStorage.setItem(`cb_listing_${sale.id}`, JSON.stringify({ title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl })); } catch {}
     fetch(`/api/social/${sale.id}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

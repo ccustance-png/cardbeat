@@ -138,6 +138,8 @@ router.get('/listing/:listingId', optionalAuth, async (req, res) => {
 
     if (!metaRes.rows.length) return res.status(404).json({ error: 'Listing not found' });
     const meta = metaRes.rows[0];
+    // Guard against rows with null metadata (e.g. from a bad earlier insert)
+    if (!meta.listing_title) return res.status(404).json({ error: 'Listing not found' });
 
     const [ratingsRes, reactionsRes, commentsRes, myRatingRes, myReactionsRes, savedRes] = await Promise.all([
       query(`SELECT ROUND(AVG(stars)::numeric, 1) as avg, COUNT(*) as count FROM ratings WHERE listing_id = $1`, [listingId]),
