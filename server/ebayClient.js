@@ -35,6 +35,15 @@ async function getAccessToken() {
   return tokens['browse'].token;
 }
 
+// eBay Browse API returns images in different fields depending on item type / query.
+// Try each in order until we get a URL.
+function extractImage(item) {
+  return item.image?.imageUrl
+    || item.thumbnailImages?.[0]?.imageUrl
+    || item.additionalImages?.[0]?.imageUrl
+    || null;
+}
+
 const SPORT_QUERIES = {
   baseball: 'baseball card',
   basketball: 'basketball card',
@@ -128,7 +137,7 @@ export async function fetchBrowseListings(sport, limit = 20) {
     .map((item) => ({
       id: item.itemId,
       title: item.title,
-      image: item.image?.imageUrl || null,
+      image: extractImage(item),
       price: parseFloat(item.price?.value || 0),
       currency: item.price?.currency || 'USD',
       soldAt: new Date().toISOString(), // time we discovered it via API
@@ -158,6 +167,7 @@ export async function fetchEndingSoon(sport, hoursAhead = 6, limit = 50) {
       filter: `buyingOptions:{AUCTION},endDate:[${new Date().toISOString()}..${endWindow}]`,
       sort: 'endingSoonest',
       limit,
+      fieldgroups: 'EXTENDED', // ensures thumbnailImages and additionalImages are returned
     },
   });
 
@@ -168,7 +178,7 @@ export async function fetchEndingSoon(sport, hoursAhead = 6, limit = 50) {
     .map(item => ({
       id: item.itemId,
       title: item.title,
-      image: item.image?.imageUrl || null,
+      image: extractImage(item), // tries image, thumbnailImages, additionalImages
       price: parseFloat(item.currentBidPrice?.value || item.price?.value || 0),
       currency: item.currentBidPrice?.currency || item.price?.currency || 'USD',
       soldAt: new Date().toISOString(),
