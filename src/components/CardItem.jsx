@@ -8,9 +8,9 @@ function fmt(price) {
 
 function timeAgo(iso) {
   const secs = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (secs < 60) return `listed ${secs}s ago`;
-  if (secs < 3600) return `listed ${Math.floor(secs / 60)}m ago`;
-  return `listed ${Math.floor(secs / 3600)}h ago`;
+  if (secs < 60) return `spotted ${secs}s ago`;
+  if (secs < 3600) return `spotted ${Math.floor(secs / 60)}m ago`;
+  return `spotted ${Math.floor(secs / 3600)}h ago`;
 }
 
 function affiliateUrl(url) {
@@ -99,7 +99,9 @@ export default function CardItem({ sale, isNew, isWatched, onCommentClick, onAut
 
         <div className="card-item__price-row">
           <span className="card-item__price">{fmt(sale.price)}</span>
-          <span className="card-item__first-sale">asking price</span>
+          <span className="card-item__first-sale">
+            {sale.buyingOption === 'auction' ? 'starting bid' : 'buy it now'}
+          </span>
         </div>
 
         <SocialBar

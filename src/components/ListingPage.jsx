@@ -135,7 +135,7 @@ export default function ListingPage({ listingId }) {
       <div className="listing-page__header">
         <a href="/" className="listing-back">← CardBeat</a>
         <span className="listing-page__brand">Card<span style={{color:'var(--cb-violet)'}}>Beat</span></span>
-        <span className="listing-page__tagline">Live Sports Card Market</span>
+        <span className="listing-page__tagline">Newest eBay listings, live</span>
       </div>
 
       <div className="listing-page__body">
@@ -159,7 +159,9 @@ export default function ListingPage({ listingId }) {
             <h1 className="listing-card__title">{listing.title}</h1>
             <div className="listing-card__price-row">
               <span className="listing-card__price">{fmt(listing.price)}</span>
-              <span className="listing-card__asking">asking price</span>
+              <span className="listing-card__asking">
+                {listing.buyingOption === 'auction' ? 'starting bid' : 'buy it now'}
+              </span>
             </div>
 
             {href && href !== '#' && (

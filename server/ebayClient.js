@@ -131,11 +131,14 @@ export async function fetchBrowseListings(sport, limit = 20) {
       image: item.image?.imageUrl || null,
       price: parseFloat(item.price?.value || 0),
       currency: item.price?.currency || 'USD',
-      soldAt: new Date().toISOString(),
+      soldAt: new Date().toISOString(), // time we discovered it via API
       sport,
       sportColor: SPORT_COLORS[sport],
       itemUrl: item.itemWebUrl,
       condition: item.condition || 'Unknown',
+      buyingOption: Array.isArray(item.buyingOptions)
+        ? (item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed')
+        : 'fixed',
     }));
 }
 

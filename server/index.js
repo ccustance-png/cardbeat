@@ -62,7 +62,7 @@ function broadcastSale(sale) {
 async function pollEbay() {
   try {
     console.log('[eBay] Polling active listings via Browse API…');
-    const listings = await fetchBrowseAllSports(50); // 50 per sport = up to 250 active listings
+    const listings = await fetchBrowseAllSports(200); // 200 per sport = eBay Browse API max per request
     let newCount = 0;
     for (const listing of listings) {
       const enriched = addSale(listing);

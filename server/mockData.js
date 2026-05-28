@@ -62,6 +62,7 @@ export function generateMockSale() {
     prevAvgPrice: prevPrice,
     pctChange: Math.round(pctChange * 10) / 10,
     priceDirection: pctChange >= 0 ? 'up' : 'down',
+    buyingOption: 'fixed',
   };
 }
 
