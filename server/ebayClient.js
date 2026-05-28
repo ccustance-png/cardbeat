@@ -139,7 +139,61 @@ export async function fetchBrowseListings(sport, limit = 20) {
       buyingOption: Array.isArray(item.buyingOptions)
         ? (item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed')
         : 'fixed',
+      endsAt: item.itemEndDate || null,
+      bidCount: item.bidCount || 0,
     }));
+}
+
+// Browse API — auctions sorted by ending soonest, filtered to next N hours
+export async function fetchEndingSoon(sport, hoursAhead = 6, limit = 50) {
+  const token = await getAccessToken('browse');
+  const query = SPORT_QUERIES[sport];
+  const endWindow = new Date(Date.now() + hoursAhead * 3600 * 1000).toISOString();
+
+  const response = await axios.get(EBAY_BROWSE_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: query,
+      category_ids: SPORTS_CARDS_CATEGORY,
+      filter: `buyingOptions:{AUCTION},endDate:[${new Date().toISOString()}..${endWindow}]`,
+      sort: 'endingSoonest',
+      limit,
+    },
+  });
+
+  const items = response.data.itemSummaries || [];
+
+  return items
+    .filter(item => item.itemEndDate) // must have an end date to show countdown
+    .map(item => ({
+      id: item.itemId,
+      title: item.title,
+      image: item.image?.imageUrl || null,
+      price: parseFloat(item.currentBidPrice?.value || item.price?.value || 0),
+      currency: item.currentBidPrice?.currency || item.price?.currency || 'USD',
+      soldAt: new Date().toISOString(),
+      sport,
+      sportColor: SPORT_COLORS[sport],
+      itemUrl: item.itemWebUrl,
+      condition: item.condition || 'Unknown',
+      buyingOption: 'auction',
+      endsAt: item.itemEndDate,
+      bidCount: item.bidCount || 0,
+    }));
+}
+
+export async function fetchEndingSoonAllSports(hoursAhead = 6, limit = 50) {
+  const sports = Object.keys(SPORT_QUERIES);
+  const results = await Promise.allSettled(
+    sports.map(sport => fetchEndingSoon(sport, hoursAhead, limit))
+  );
+  const listings = [];
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled') listings.push(...result.value);
+    else console.warn(`[Ending Soon] ${sports[i]} failed:`, result.reason?.message);
+  });
+  // Sort by ending soonest first
+  return listings.sort((a, b) => new Date(a.endsAt) - new Date(b.endsAt));
 }
 
 export async function fetchBrowseAllSports(limitPerSport = 15) {

@@ -5,8 +5,8 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { fetchBrowseAllSports } from './ebayClient.js';
-import { generateMockSale, generateMockSales } from './mockData.js';
+import { fetchBrowseAllSports, fetchEndingSoonAllSports } from './ebayClient.js';
+import { generateMockSale, generateMockSales, getMockAuctions } from './mockData.js';
 import { addSale, getSales } from './store.js';
 import { migrate } from './db.js';
 import authRouter from './auth.js';
@@ -34,6 +34,30 @@ app.use('/api/watchlist', watchlistRouter);
 app.get('/api/sales', (req, res) => {
   const { sport, limit } = req.query;
   res.json(getSales(sport || null, parseInt(limit) || 100));
+});
+
+// Ending-soon auctions — cached, refreshed every 2 minutes
+let endingSoonCache = { data: [], updatedAt: 0 };
+const ENDING_SOON_TTL_MS = 2 * 60 * 1000;
+
+app.get('/api/ending-soon', async (_req, res) => {
+  const now = Date.now();
+  if (now - endingSoonCache.updatedAt < ENDING_SOON_TTL_MS && endingSoonCache.data.length > 0) {
+    return res.json(endingSoonCache.data);
+  }
+  if (USE_MOCK) {
+    const auctions = getMockAuctions();
+    endingSoonCache = { data: auctions, updatedAt: now };
+    return res.json(auctions);
+  }
+  try {
+    const listings = await fetchEndingSoonAllSports(6, 50);
+    endingSoonCache = { data: listings, updatedAt: now };
+    res.json(listings);
+  } catch (err) {
+    console.error('[Ending Soon] Fetch error:', err.message);
+    res.json(endingSoonCache.data); // serve stale on error
+  }
 });
 
 app.get('/api/health', (_req, res) => {

@@ -75,3 +75,47 @@ export function generateMockSales(count = 40) {
     return sale;
   }).sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt));
 }
+
+// Mock auctions ending within the next 6 hours, sorted soonest first
+const MOCK_AUCTIONS = [
+  { title: '2003 Topps Chrome LeBron James RC PSA 9', sport: 'basketball', basePrice: 2800, minsFromNow: 4 },
+  { title: '2017 Panini Prizm Patrick Mahomes RC PSA 10', sport: 'football', basePrice: 2400, minsFromNow: 12 },
+  { title: '1986 Fleer Michael Jordan RC PSA 8', sport: 'basketball', basePrice: 3600, minsFromNow: 28 },
+  { title: '2005 Upper Deck Young Guns Sidney Crosby RC PSA 10', sport: 'hockey', basePrice: 3200, minsFromNow: 47 },
+  { title: '2022 Panini Prizm World Cup Lionel Messi PSA 10', sport: 'soccer', basePrice: 340, minsFromNow: 65 },
+  { title: '1952 Topps Mickey Mantle #311 SGC 4', sport: 'baseball', basePrice: 4200, minsFromNow: 89 },
+  { title: '2000 Playoff Contenders Tom Brady RC Auto PSA 8', sport: 'football', basePrice: 18000, minsFromNow: 110 },
+  { title: '2019 Panini Prizm Zion Williamson RC PSA 10', sport: 'basketball', basePrice: 550, minsFromNow: 142 },
+  { title: '1979 O-Pee-Chee Wayne Gretzky RC PSA 7', sport: 'hockey', basePrice: 5400, minsFromNow: 175 },
+  { title: '2003 Panini Cristiano Ronaldo RC PSA 9', sport: 'soccer', basePrice: 1800, minsFromNow: 210 },
+  { title: '2018 Topps Chrome Shohei Ohtani RC PSA 10', sport: 'baseball', basePrice: 320, minsFromNow: 245 },
+  { title: '2018 Panini Prizm Luka Doncic RC PSA 10', sport: 'basketball', basePrice: 1200, minsFromNow: 280 },
+  { title: '2021 Topps Chrome Kylian Mbappe RC PSA 10', sport: 'soccer', basePrice: 280, minsFromNow: 310 },
+  { title: '1989 Upper Deck Ken Griffey Jr RC PSA 9', sport: 'baseball', basePrice: 140, minsFromNow: 340 },
+  { title: '2011 Upper Deck Young Guns Connor McDavid RC PSA 9', sport: 'hockey', basePrice: 890, minsFromNow: 355 },
+];
+
+let auctionIdCounter = 9000;
+
+export function getMockAuctions() {
+  return MOCK_AUCTIONS.map((a, i) => {
+    const endsAt = new Date(Date.now() + a.minsFromNow * 60 * 1000).toISOString();
+    const bids = Math.floor(Math.random() * 18) + 1;
+    const currentBid = randomVariance(a.basePrice, 0.15);
+    return {
+      id: `mock-auction-${i}`,
+      title: a.title,
+      image: null,
+      price: currentBid,
+      currency: 'USD',
+      soldAt: new Date().toISOString(),
+      sport: a.sport,
+      sportColor: SPORT_COLORS[a.sport],
+      itemUrl: '#',
+      condition: a.title.includes('PSA') || a.title.includes('BGS') || a.title.includes('SGC') ? 'Graded' : 'Raw',
+      buyingOption: 'auction',
+      endsAt,
+      bidCount: bids,
+    };
+  });
+}

@@ -8,6 +8,7 @@ import AuthModal from './components/AuthModal.jsx';
 import CommentDrawer from './components/CommentDrawer.jsx';
 import SavedDrawer from './components/SavedDrawer.jsx';
 import WatchlistDrawer from './components/WatchlistDrawer.jsx';
+import EndingSoonFeed from './components/EndingSoonFeed.jsx';
 import ListingPage from './components/ListingPage.jsx';
 
 const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
@@ -58,6 +59,7 @@ function AppInner() {
     try { return JSON.parse(localStorage.getItem('cb_watchlist') || '[]'); } catch { return []; }
   });
   const [watchedOnly, setWatchedOnly] = useState(false);
+  const [activeView, setActiveView] = useState('live'); // 'live' | 'ending-soon'
   const socketRef = useRef(null);
   const newIdsTimers = useRef({});
   const feedPausedRef = useRef(false);
@@ -206,26 +208,52 @@ function AppInner() {
 
 
       <div className="app-body">
+        {/* View toggle */}
+        <div className="view-toggle">
+          <button
+            className={`view-toggle-btn ${activeView === 'live' ? 'active' : ''}`}
+            onClick={() => setActiveView('live')}
+          >
+            📡 Live Feed
+          </button>
+          <button
+            className={`view-toggle-btn view-toggle-btn--auction ${activeView === 'ending-soon' ? 'active' : ''}`}
+            onClick={() => setActiveView('ending-soon')}
+          >
+            ⏱ Ending Soon
+          </button>
+        </div>
+
         <SportFilter
           active={activeSport}
           onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
           counts={counts}
-          watchlistTerms={watchlistTerms}
+          watchlistTerms={activeView === 'live' ? watchlistTerms : []}
           watchedOnly={watchedOnly}
           watchedCount={watchedCount}
           onWatchedToggle={() => setWatchedOnly(v => !v)}
         />
-        <CardFeed
-          sales={sales}
-          activeSport={activeSport}
-          newSaleIds={newSaleIds}
-          watchlistTerms={watchlistTerms}
-          watchedOnly={watchedOnly}
-          onCommentClick={setCommentSale}
-          onAuthRequired={() => setAuthModalOpen(true)}
-          onPause={pauseFeed}
-          onResume={resumeFeed}
-        />
+
+        {activeView === 'live' ? (
+          <CardFeed
+            sales={sales}
+            activeSport={activeSport}
+            newSaleIds={newSaleIds}
+            watchlistTerms={watchlistTerms}
+            watchedOnly={watchedOnly}
+            onCommentClick={setCommentSale}
+            onAuthRequired={() => setAuthModalOpen(true)}
+            onPause={pauseFeed}
+            onResume={resumeFeed}
+          />
+        ) : (
+          <EndingSoonFeed
+            activeSport={activeSport}
+            watchlistTerms={watchlistTerms}
+            onCommentClick={setCommentSale}
+            onAuthRequired={() => setAuthModalOpen(true)}
+          />
+        )}
       </div>
 
       {savedOpen && (
