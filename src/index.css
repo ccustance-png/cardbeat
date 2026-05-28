@@ -148,6 +148,21 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   border-right: 0.5px solid rgba(74, 58, 232, 0.5);
+  white-space: nowrap;
+}
+
+.ticker-badge--trending {
+  background: color-mix(in srgb, var(--cb-gold) 20%, var(--cb-midnight));
+  color: var(--cb-gold);
+  border-right-color: color-mix(in srgb, var(--cb-gold) 25%, transparent);
+}
+
+.ticker-rank {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cb-gold);
+  opacity: 0.8;
 }
 
 .ticker-viewport {
@@ -219,13 +234,8 @@ a:hover { text-decoration: underline; }
 
 .ticker-comment-hint {
   font-size: 11px;
-  opacity: 0;
-  transition: opacity 0.15s;
+  color: var(--text-dim);
   margin-left: 2px;
-}
-
-.ticker-item--clickable:hover .ticker-comment-hint {
-  opacity: 1;
 }
 
 /* ── Sport Filter ── */
@@ -504,21 +514,13 @@ a:hover { text-decoration: underline; }
   font-style: italic;
 }
 
-/* ── App Body Layout (with sidebar) ── */
+/* ── App Body Layout ── */
 .app-body {
   flex: 1;
-  max-width: 1600px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 20px 24px;
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-.app-main {
-  flex: 1;
-  min-width: 0;
 }
 
 /* ── Auth Header Controls ── */
@@ -1252,51 +1254,9 @@ a:hover { text-decoration: underline; }
 }
 
 /* ── Responsive ── */
-@media (max-width: 1024px) {
-  /* Stack sidebar below the main feed */
-  .app-body {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  /* Full-width horizontal strip */
-  .trending-sidebar {
-    width: 100%;
-    position: static;
-    top: auto;
-    max-height: none;
-    flex-shrink: 1;
-  }
-
-  /* Horizontal scroll list */
-  .trending-list {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    flex: none;
-    padding: 4px 0;
-  }
-
-  .trending-list::-webkit-scrollbar { display: none; }
-
-  /* Fixed-width cards that scroll sideways */
-  .trending-item {
-    min-width: 200px;
-    max-width: 200px;
-    flex-shrink: 0;
-    border-bottom: none;
-    border-right: 0.5px solid var(--border);
-  }
-
-  .trending-item:last-child { border-right: none; }
-}
-
 @media (max-width: 600px) {
   .app-header { padding: 10px 14px; }
-  .app-body { padding: 12px; gap: 12px; }
+  .app-body { padding: 12px; }
   .app-tagline { display: none; }
   .card-feed { grid-template-columns: 1fr; }
 
@@ -1305,9 +1265,6 @@ a:hover { text-decoration: underline; }
   .header-username { display: none; }
   .header-watchlist-btn { padding: 6px 10px; font-size: 12px; }
   .header-saved-btn { padding: 6px 10px; font-size: 12px; }
-
-  /* Tighten trending strip on phone */
-  .trending-item { min-width: 170px; max-width: 170px; }
 }
 
 /* ── Listing Permalink Page ── */

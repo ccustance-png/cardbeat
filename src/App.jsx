@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Ticker from './components/Ticker.jsx';
 import SportFilter from './components/SportFilter.jsx';
 import CardFeed from './components/CardFeed.jsx';
-import TrendingSidebar from './components/TrendingSidebar.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import CommentDrawer from './components/CommentDrawer.jsx';
 import SavedDrawer from './components/SavedDrawer.jsx';
@@ -205,32 +204,28 @@ function AppInner() {
         openListing(sale.id, { title: sale.title, image: sale.image, price: sale.price, sport: sale.sport, itemUrl: sale.itemUrl });
       }} />
 
+
       <div className="app-body">
-        <div className="app-main">
-          <SportFilter
-            active={activeSport}
-            onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
-            counts={counts}
-            watchlistTerms={watchlistTerms}
-            watchedOnly={watchedOnly}
-            watchedCount={watchedCount}
-            onWatchedToggle={() => setWatchedOnly(v => !v)}
-          />
-          <CardFeed
-            sales={sales}
-            activeSport={activeSport}
-            newSaleIds={newSaleIds}
-            watchlistTerms={watchlistTerms}
-            watchedOnly={watchedOnly}
-            onCommentClick={setCommentSale}
-            onAuthRequired={() => setAuthModalOpen(true)}
-            onPause={pauseFeed}
-            onResume={resumeFeed}
-          />
-        </div>
-        <TrendingSidebar onCardClick={(item) => {
-          openListing(item.listing_id, { title: item.title, image: item.image, price: item.price, sport: item.sport, itemUrl: item.item_url });
-        }} />
+        <SportFilter
+          active={activeSport}
+          onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
+          counts={counts}
+          watchlistTerms={watchlistTerms}
+          watchedOnly={watchedOnly}
+          watchedCount={watchedCount}
+          onWatchedToggle={() => setWatchedOnly(v => !v)}
+        />
+        <CardFeed
+          sales={sales}
+          activeSport={activeSport}
+          newSaleIds={newSaleIds}
+          watchlistTerms={watchlistTerms}
+          watchedOnly={watchedOnly}
+          onCommentClick={setCommentSale}
+          onAuthRequired={() => setAuthModalOpen(true)}
+          onPause={pauseFeed}
+          onResume={resumeFeed}
+        />
       </div>
 
       {savedOpen && (
