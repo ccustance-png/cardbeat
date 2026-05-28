@@ -5,7 +5,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { fetchAllSports, fetchBrowseAllSports } from './ebayClient.js';
+import { fetchBrowseAllSports } from './ebayClient.js';
 import { generateMockSale, generateMockSales } from './mockData.js';
 import { addSale, getSales } from './store.js';
 import { migrate } from './db.js';
@@ -22,7 +22,7 @@ const io = new Server(httpServer, { cors: { origin: '*' } });
 
 const PORT = process.env.PORT || 3001;
 const USE_MOCK = process.env.USE_MOCK === 'true' || !process.env.EBAY_CLIENT_ID;
-const POLL_INTERVAL_MS = 45000; // 45 seconds between eBay polls
+const POLL_INTERVAL_MS = 30000; // 30 seconds between eBay polls
 
 app.use(cors());
 app.use(express.json());
@@ -61,17 +61,17 @@ function broadcastSale(sale) {
 
 async function pollEbay() {
   try {
-    console.log('[eBay] Polling for new sales…');
-    const sales = await fetchAllSports();
+    console.log('[eBay] Polling active listings via Browse API…');
+    const listings = await fetchBrowseAllSports(50); // 50 per sport = up to 250 active listings
     let newCount = 0;
-    for (const sale of sales) {
-      const enriched = addSale(sale);
+    for (const listing of listings) {
+      const enriched = addSale(listing);
       if (enriched) {
         io.emit('newSale', enriched);
         newCount++;
       }
     }
-    console.log(`[eBay] ${newCount} new sales broadcast`);
+    console.log(`[eBay] ${newCount} new listings broadcast`);
   } catch (err) {
     console.error('[eBay] Poll error:', err.message);
   }
@@ -137,8 +137,8 @@ async function startMockMode() {
 }
 
 async function startLiveMode() {
-  console.log('[Live] Starting eBay live polling');
-  await pollEbay();
+  console.log('[Live] Starting eBay Browse API live polling');
+  await pollEbay(); // initial seed
   setInterval(pollEbay, POLL_INTERVAL_MS);
 }
 

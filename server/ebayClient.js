@@ -105,7 +105,8 @@ export async function fetchAllSports() {
   return sales.sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt));
 }
 
-// Browse API — active listings with real images, used to seed mock mode
+// Browse API — active listings sorted by newly listed
+// Used for both live polling and mock-mode seeding
 export async function fetchBrowseListings(sport, limit = 20) {
   const token = await getAccessToken('browse');
   const query = SPORT_QUERIES[sport];
@@ -116,22 +117,21 @@ export async function fetchBrowseListings(sport, limit = 20) {
       q: query,
       category_ids: SPORTS_CARDS_CATEGORY,
       limit,
-      filter: 'buyingOptions:{FIXED_PRICE}',
-      sort: 'newlyListed',
+      sort: 'newlyListed', // includes both fixed-price and auction
     },
   });
 
   const items = response.data.itemSummaries || [];
 
   return items
-    .filter((item) => item.image?.imageUrl)
+    .filter((item) => item.price?.value > 0)
     .map((item) => ({
-      id: `browse-${item.itemId}`,
+      id: item.itemId,
       title: item.title,
-      image: item.image.imageUrl,
+      image: item.image?.imageUrl || null,
       price: parseFloat(item.price?.value || 0),
       currency: item.price?.currency || 'USD',
-      soldAt: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+      soldAt: new Date().toISOString(),
       sport,
       sportColor: SPORT_COLORS[sport],
       itemUrl: item.itemWebUrl,
