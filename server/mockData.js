@@ -111,7 +111,7 @@ export function getMockAuctions() {
       soldAt: new Date().toISOString(),
       sport: a.sport,
       sportColor: SPORT_COLORS[a.sport],
-      itemUrl: '#',
+      itemUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(a.title)}&_sacat=212`,
       condition: a.title.includes('PSA') || a.title.includes('BGS') || a.title.includes('SGC') ? 'Graded' : 'Raw',
       buyingOption: 'auction',
       endsAt,

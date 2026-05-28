@@ -143,7 +143,7 @@ export async function fetchBrowseListings(sport, limit = 20) {
       soldAt: new Date().toISOString(), // time we discovered it via API
       sport,
       sportColor: SPORT_COLORS[sport],
-      itemUrl: item.itemWebUrl,
+      itemUrl: item.itemWebUrl || `https://www.ebay.com/itm/${item.itemId}`,
       condition: item.condition || 'Unknown',
       buyingOption: Array.isArray(item.buyingOptions)
         ? (item.buyingOptions.includes('AUCTION') ? 'auction' : 'fixed')
@@ -184,7 +184,7 @@ export async function fetchEndingSoon(sport, hoursAhead = 6, limit = 50) {
       soldAt: new Date().toISOString(),
       sport,
       sportColor: SPORT_COLORS[sport],
-      itemUrl: item.itemWebUrl,
+      itemUrl: item.itemWebUrl || `https://www.ebay.com/itm/${item.itemId}`,
       condition: item.condition || 'Unknown',
       buyingOption: 'auction',
       endsAt: item.itemEndDate,
