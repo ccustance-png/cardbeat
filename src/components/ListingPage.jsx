@@ -135,7 +135,7 @@ export default function ListingPage({ listingId }) {
       <div className="listing-page__header">
         <a href="/" className="listing-back">← CardBeat</a>
         <span className="listing-page__brand">Card<span style={{color:'var(--cb-violet)'}}>Beat</span></span>
-        <span className="listing-page__tagline">Newest eBay listings, live</span>
+        <span className="listing-page__tagline">New listings & ending auctions, live</span>
       </div>
 
       <div className="listing-page__body">
