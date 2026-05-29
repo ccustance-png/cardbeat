@@ -45,19 +45,23 @@ app.get('/api/ending-soon', async (_req, res) => {
   if (now - endingSoonCache.updatedAt < ENDING_SOON_TTL_MS && endingSoonCache.data.length > 0) {
     return res.json(endingSoonCache.data);
   }
-  if (USE_MOCK) {
-    const auctions = getMockAuctions();
-    endingSoonCache = { data: auctions, updatedAt: now };
-    return res.json(auctions);
+  // Try real eBay API whenever credentials exist — same logic as the live feed,
+  // which fetches real Browse data even when USE_MOCK is true.
+  if (process.env.EBAY_CLIENT_ID) {
+    try {
+      const listings = await fetchEndingSoonAllSports(6, 50);
+      if (listings.length > 0) {
+        endingSoonCache = { data: listings, updatedAt: now };
+        return res.json(listings);
+      }
+    } catch (err) {
+      console.error('[Ending Soon] eBay fetch error:', err.message);
+    }
   }
-  try {
-    const listings = await fetchEndingSoonAllSports(6, 50);
-    endingSoonCache = { data: listings, updatedAt: now };
-    res.json(listings);
-  } catch (err) {
-    console.error('[Ending Soon] Fetch error:', err.message);
-    res.json(endingSoonCache.data); // serve stale on error
-  }
+  // Fall back to mock data (no credentials, or eBay returned nothing)
+  const auctions = getMockAuctions();
+  endingSoonCache = { data: auctions, updatedAt: now };
+  res.json(auctions);
 });
 
 app.get('/api/health', (_req, res) => {
