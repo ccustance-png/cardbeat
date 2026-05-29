@@ -121,7 +121,7 @@ function AuctionCard({ item, isWatched, onCommentClick, onAuthRequired }) {
   );
 }
 
-export default function EndingSoonFeed({ activeSport, watchlistTerms = [], onCommentClick, onAuthRequired }) {
+export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watchedOnly = false, onCommentClick, onAuthRequired }) {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,9 +138,16 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], onCom
     return () => clearInterval(interval);
   }, [load]);
 
-  const filtered = activeSport === 'all'
+  let filtered = activeSport === 'all'
     ? auctions
     : auctions.filter(a => a.sport === activeSport);
+
+  if (watchedOnly && watchlistTerms.length > 0) {
+    filtered = filtered.filter(a => {
+      const t = (a.title || '').toLowerCase();
+      return watchlistTerms.some(term => t.includes(term));
+    });
+  }
 
   // Sort by ending soonest, expired ones at the bottom
   const sorted = [...filtered].sort((a, b) => {
@@ -159,7 +166,10 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], onCom
   if (!sorted.length) {
     return (
       <div className="feed-empty">
-        <p>No auctions ending soon{activeSport !== 'all' ? ` in ${activeSport}` : ''}.</p>
+        {watchedOnly
+          ? <p>No watched auctions ending soon. They'll appear here when one surfaces.</p>
+          : <p>No auctions ending soon{activeSport !== 'all' ? ` in ${activeSport}` : ''}.</p>
+        }
         <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--text-dim)' }}>
           Auctions within 6 hours of ending appear here.
         </p>

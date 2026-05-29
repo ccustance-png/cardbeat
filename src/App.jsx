@@ -228,9 +228,9 @@ function AppInner() {
           active={activeSport}
           onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
           counts={counts}
-          watchlistTerms={activeView === 'live' ? watchlistTerms : []}
+          watchlistTerms={watchlistTerms}
           watchedOnly={watchedOnly}
-          watchedCount={watchedCount}
+          watchedCount={activeView === 'live' ? watchedCount : null}
           onWatchedToggle={() => setWatchedOnly(v => !v)}
         />
 
@@ -250,6 +250,7 @@ function AppInner() {
           <EndingSoonFeed
             activeSport={activeSport}
             watchlistTerms={watchlistTerms}
+            watchedOnly={watchedOnly}
             onCommentClick={setCommentSale}
             onAuthRequired={() => setAuthModalOpen(true)}
           />

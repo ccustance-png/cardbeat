@@ -39,6 +39,7 @@ export default function SportFilter({ active, onChange, counts, watchlistTerms =
           {watchedCount > 0 && <span className="sport-btn-count">{watchedCount}</span>}
         </button>
       )}
+
     </div>
   );
 }
