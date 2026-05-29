@@ -124,6 +124,8 @@ function AuctionCard({ item, isWatched, onCommentClick, onAuthRequired }) {
 export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watchedOnly = false, onCommentClick, onAuthRequired }) {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bidsOnly, setBidsOnly] = useState(false);
+  const [sortMode, setSortMode] = useState('ending'); // 'ending' | 'bids'
 
   const load = useCallback(() => {
     fetch('/api/ending-soon')
@@ -149,15 +151,54 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watch
     });
   }
 
-  // Sort by ending soonest, expired ones at the bottom
+  if (bidsOnly) {
+    filtered = filtered.filter(a => (a.bidCount || 0) > 0);
+  }
+
   const sorted = [...filtered].sort((a, b) => {
+    // Always push expired to bottom
     const aMs = new Date(a.endsAt) - Date.now();
     const bMs = new Date(b.endsAt) - Date.now();
     if (aMs <= 0 && bMs <= 0) return 0;
     if (aMs <= 0) return 1;
     if (bMs <= 0) return -1;
-    return aMs - bMs;
+
+    if (sortMode === 'bids') {
+      const bidDiff = (b.bidCount || 0) - (a.bidCount || 0);
+      if (bidDiff !== 0) return bidDiff;
+    }
+    return aMs - bMs; // ending soonest as primary (or tiebreaker)
   });
+
+  const withBidsCount = filtered.filter(a => (a.bidCount || 0) > 0).length;
+
+  const filterBar = (
+    <div className="auction-filters">
+      <button
+        className={`auction-filter-btn ${bidsOnly ? 'active' : ''}`}
+        onClick={() => setBidsOnly(v => !v)}
+      >
+        🔥 Has Bids
+        {withBidsCount > 0 && !bidsOnly && (
+          <span className="auction-filter-count">{withBidsCount}</span>
+        )}
+      </button>
+      <div className="auction-sort">
+        <button
+          className={`auction-sort-btn ${sortMode === 'ending' ? 'active' : ''}`}
+          onClick={() => setSortMode('ending')}
+        >
+          ⏱ Ending Soon
+        </button>
+        <button
+          className={`auction-sort-btn ${sortMode === 'bids' ? 'active' : ''}`}
+          onClick={() => setSortMode('bids')}
+        >
+          Most Bids
+        </button>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return <div className="feed-empty"><p>Loading ending-soon auctions…</p></div>;
@@ -165,20 +206,27 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watch
 
   if (!sorted.length) {
     return (
-      <div className="feed-empty">
-        {watchedOnly
-          ? <p>No watched auctions ending soon. They'll appear here when one surfaces.</p>
-          : <p>No auctions ending soon{activeSport !== 'all' ? ` in ${activeSport}` : ''}.</p>
-        }
-        <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--text-dim)' }}>
-          Auctions within 6 hours of ending appear here.
-        </p>
-      </div>
+      <>
+        {filterBar}
+        <div className="feed-empty">
+          {bidsOnly
+            ? <p>No auctions with bids ending soon{activeSport !== 'all' ? ` in ${activeSport}` : ''}.</p>
+            : watchedOnly
+            ? <p>No watched auctions ending soon. They'll appear here when one surfaces.</p>
+            : <p>No auctions ending soon{activeSport !== 'all' ? ` in ${activeSport}` : ''}.</p>
+          }
+          <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--text-dim)' }}>
+            Auctions within 6 hours of ending appear here.
+          </p>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="card-feed">
+    <>
+      {filterBar}
+      <div className="card-feed">
       {sorted.map(item => {
         const titleLower = (item.title || '').toLowerCase();
         const isWatched = watchlistTerms.length > 0 && watchlistTerms.some(t => titleLower.includes(t));
@@ -192,6 +240,7 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watch
           />
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }

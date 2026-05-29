@@ -1737,6 +1737,82 @@ a:hover { text-decoration: underline; }
   color: var(--text);
 }
 
+/* ── Ending Soon Filter / Sort Bar ── */
+.auction-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.auction-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.auction-filter-btn:hover {
+  border-color: var(--cb-gold);
+  color: var(--cb-gold);
+}
+
+.auction-filter-btn.active {
+  border-color: var(--cb-gold);
+  background: color-mix(in srgb, var(--cb-gold) 12%, var(--bg-card));
+  color: var(--cb-gold);
+}
+
+.auction-filter-count {
+  background: var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+}
+
+.auction-sort {
+  display: flex;
+  background: var(--bg-card);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.auction-sort-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.auction-sort-btn:hover { color: var(--text); }
+
+.auction-sort-btn.active {
+  background: var(--cb-indigo);
+  color: #fff;
+}
+
 /* ── Countdown Timer ── */
 .countdown {
   font-family: var(--mono);
