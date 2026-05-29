@@ -214,7 +214,7 @@ function AppInner() {
             className={`view-toggle-btn ${activeView === 'live' ? 'active' : ''}`}
             onClick={() => setActiveView('live')}
           >
-            📡 Live Feed
+            📡 Just Listed
           </button>
           <button
             className={`view-toggle-btn view-toggle-btn--auction ${activeView === 'ending-soon' ? 'active' : ''}`}
