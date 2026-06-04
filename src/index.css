@@ -238,6 +238,20 @@ a:hover { text-decoration: underline; }
   margin-left: 2px;
 }
 
+/* ── Feed Controls (view toggle + sport filter on one row) ── */
+.feed-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* sport-filter inside feed-controls needs no own margin */
+.feed-controls .sport-filter {
+  margin-bottom: 0;
+}
+
 /* ── View Toggle ── */
 .view-toggle {
   display: flex;
@@ -1376,8 +1390,7 @@ a:hover { text-decoration: underline; }
   }
 
   /* Tighten nav elements so reel gets max height */
-  .view-toggle { margin-top: 10px; margin-bottom: 8px; }
-  .sport-filter { margin-bottom: 8px; }
+  .feed-controls { margin-top: 10px; margin-bottom: 8px; gap: 8px; }
   .auction-filters { margin-bottom: 8px; }
 
   /* Sport dropdown: stretch full width on mobile */

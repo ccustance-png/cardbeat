@@ -208,31 +208,33 @@ function AppInner() {
 
 
       <div className="app-body">
-        {/* View toggle */}
-        <div className="view-toggle">
-          <button
-            className={`view-toggle-btn ${activeView === 'live' ? 'active' : ''}`}
-            onClick={() => setActiveView('live')}
-          >
-            📡 Just Listed
-          </button>
-          <button
-            className={`view-toggle-btn view-toggle-btn--auction ${activeView === 'ending-soon' ? 'active' : ''}`}
-            onClick={() => setActiveView('ending-soon')}
-          >
-            ⏱ Ending Soon
-          </button>
-        </div>
+        {/* View toggle + sport filter on one row */}
+        <div className="feed-controls">
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${activeView === 'live' ? 'active' : ''}`}
+              onClick={() => setActiveView('live')}
+            >
+              📡 Just Listed
+            </button>
+            <button
+              className={`view-toggle-btn view-toggle-btn--auction ${activeView === 'ending-soon' ? 'active' : ''}`}
+              onClick={() => setActiveView('ending-soon')}
+            >
+              ⏱ Ending Soon
+            </button>
+          </div>
 
-        <SportFilter
-          active={activeSport}
-          onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
-          counts={counts}
-          watchlistTerms={watchlistTerms}
-          watchedOnly={watchedOnly}
-          watchedCount={activeView === 'live' ? watchedCount : null}
+          <SportFilter
+            active={activeSport}
+            onChange={(sport) => { setActiveSport(sport); setWatchedOnly(false); }}
+            counts={counts}
+            watchlistTerms={watchlistTerms}
+            watchedOnly={watchedOnly}
+            watchedCount={activeView === 'live' ? watchedCount : null}
           onWatchedToggle={() => setWatchedOnly(v => !v)}
-        />
+          />
+        </div>{/* end feed-controls */}
 
         {activeView === 'live' ? (
           <CardFeed
