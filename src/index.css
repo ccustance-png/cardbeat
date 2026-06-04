@@ -247,10 +247,9 @@ a:hover { text-decoration: underline; }
   flex-wrap: wrap;
 }
 
-/* sport-filter inside feed-controls needs no own margin */
-.feed-controls .sport-filter {
-  margin-bottom: 0;
-}
+/* children inside feed-controls carry no own bottom margin */
+.feed-controls .sport-filter { margin-bottom: 0; }
+.feed-controls .view-toggle  { margin-bottom: 0; }
 
 /* ── View Toggle ── */
 .view-toggle {
