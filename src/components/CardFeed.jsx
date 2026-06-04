@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import CardItem from './CardItem.jsx';
+import MobileReel from './MobileReel.jsx';
 
 export default function CardFeed({ sales, activeSport, newSaleIds, watchlistTerms = [], watchedOnly = false, onCommentClick, onAuthRequired, onPause, onResume }) {
   let filtered = activeSport === 'all'
@@ -31,22 +32,38 @@ export default function CardFeed({ sales, activeSport, newSaleIds, watchlistTerm
   }
 
   return (
-    <div className="card-feed" onMouseEnter={onPause} onMouseLeave={onResume}>
-      {filtered.map((sale) => {
-        const titleLower = (sale.title || '').toLowerCase();
-        const isWatched = watchlistTerms.length > 0 &&
-          watchlistTerms.some(t => titleLower.includes(t));
-        return (
-          <CardItem
-            key={sale.id}
-            sale={sale}
-            isNew={newSaleIds.has(sale.id)}
-            isWatched={isWatched}
-            onCommentClick={onCommentClick}
-            onAuthRequired={onAuthRequired}
-          />
-        );
-      })}
-    </div>
+    <>
+      {/* Desktop: grid */}
+      <div className="desktop-feed">
+        <div className="card-feed" onMouseEnter={onPause} onMouseLeave={onResume}>
+          {filtered.map((sale) => {
+            const titleLower = (sale.title || '').toLowerCase();
+            const isWatched = watchlistTerms.length > 0 &&
+              watchlistTerms.some(t => titleLower.includes(t));
+            return (
+              <CardItem
+                key={sale.id}
+                sale={sale}
+                isNew={newSaleIds.has(sale.id)}
+                isWatched={isWatched}
+                onCommentClick={onCommentClick}
+                onAuthRequired={onAuthRequired}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile: reel */}
+      <div className="mobile-reel-wrapper">
+        <MobileReel
+          items={filtered}
+          watchlistTerms={watchlistTerms}
+          newSaleIds={newSaleIds}
+          onCommentClick={onCommentClick}
+          onAuthRequired={onAuthRequired}
+        />
+      </div>
+    </>
   );
 }

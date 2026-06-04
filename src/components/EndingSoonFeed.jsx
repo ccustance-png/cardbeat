@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import SocialBar from './SocialBar.jsx';
+import MobileReel from './MobileReel.jsx';
 
 const SPORT_ICONS = { baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒', soccer: '⚽' };
 const SPORT_COLORS = { baseball: '#e63946', basketball: '#f4a261', football: '#2a9d8f', hockey: '#4895ef', soccer: '#22c55e' };
@@ -226,20 +227,35 @@ export default function EndingSoonFeed({ activeSport, watchlistTerms = [], watch
   return (
     <>
       {filterBar}
-      <div className="card-feed">
-      {sorted.map(item => {
-        const titleLower = (item.title || '').toLowerCase();
-        const isWatched = watchlistTerms.length > 0 && watchlistTerms.some(t => titleLower.includes(t));
-        return (
-          <AuctionCard
-            key={item.id}
-            item={item}
-            isWatched={isWatched}
-            onCommentClick={onCommentClick}
-            onAuthRequired={onAuthRequired}
-          />
-        );
-      })}
+
+      {/* Desktop: grid */}
+      <div className="desktop-feed">
+        <div className="card-feed">
+          {sorted.map(item => {
+            const titleLower = (item.title || '').toLowerCase();
+            const isWatched = watchlistTerms.length > 0 && watchlistTerms.some(t => titleLower.includes(t));
+            return (
+              <AuctionCard
+                key={item.id}
+                item={item}
+                isWatched={isWatched}
+                onCommentClick={onCommentClick}
+                onAuthRequired={onAuthRequired}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile: reel */}
+      <div className="mobile-reel-wrapper">
+        <MobileReel
+          items={sorted}
+          watchlistTerms={watchlistTerms}
+          isEndingSoon
+          onCommentClick={onCommentClick}
+          onAuthRequired={onAuthRequired}
+        />
       </div>
     </>
   );

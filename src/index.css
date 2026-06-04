@@ -1293,18 +1293,244 @@ a:hover { text-decoration: underline; }
   margin-left: auto;
 }
 
+/* ── Desktop/Mobile feed wrappers ── */
+.desktop-feed { display: block; }
+.mobile-reel-wrapper { display: none; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .app-header { padding: 10px 14px; }
-  .app-body { padding: 12px; }
   .app-tagline { display: none; }
-  .card-feed { grid-template-columns: 1fr; }
 
   /* Compact header on small screens */
   .total-seen { display: none; }
   .header-username { display: none; }
   .header-watchlist-btn { padding: 6px 10px; font-size: 12px; }
   .header-saved-btn { padding: 6px 10px; font-size: 12px; }
+}
+
+/* ── Mobile Reel (≤768px) ── */
+@media (max-width: 768px) {
+  /* Lock the whole app to viewport height so the reel can fill the rest */
+  .app {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+  }
+
+  /* Tighten nav elements so reel gets max height */
+  .view-toggle { margin-top: 10px; margin-bottom: 8px; }
+  .sport-filter { margin-bottom: 8px; }
+  .auction-filters { margin-bottom: 8px; }
+
+  /* Hide desktop grid, show reel */
+  .desktop-feed { display: none; }
+  .mobile-reel-wrapper {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Scroll-snap container */
+  .mobile-reel {
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-reel::-webkit-scrollbar { display: none; }
+
+  /* Each card = full container height, snaps into place */
+  .reel-slide {
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--bg-card);
+  }
+
+  /* Image fills the slide */
+  .reel-slide__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .reel-slide__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #050415;
+  }
+
+  .reel-slide__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reel-slide__placeholder-icon { font-size: 72px; opacity: 0.4; }
+
+  /* Gradient: dark at bottom where info lives, clear at top */
+  .reel-slide__gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(5, 4, 21, 0.97) 0%,
+      rgba(5, 4, 21, 0.75) 30%,
+      rgba(5, 4, 21, 0.2)  58%,
+      transparent 75%
+    );
+  }
+
+  /* Info block pinned to the bottom */
+  .reel-slide__info {
+    position: absolute;
+    bottom: 36px;
+    left: 0;
+    right: 0;
+    padding: 0 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    z-index: 1;
+  }
+
+  /* Badge row */
+  .reel-slide__badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .reel-slide__sport-tag {
+    background: color-mix(in srgb, var(--sport-color) 20%, #000);
+    color: var(--sport-color);
+    border: 1px solid color-mix(in srgb, var(--sport-color) 40%, transparent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+
+  .reel-slide__watched-tag {
+    background: color-mix(in srgb, var(--cb-gold) 18%, #000);
+    color: var(--cb-gold);
+    border: 1px solid color-mix(in srgb, var(--cb-gold) 40%, transparent);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+
+  .reel-slide__new-tag {
+    font-size: 10px;
+    color: var(--cb-violet);
+    font-weight: 600;
+  }
+
+  /* Countdown */
+  .reel-slide__countdown-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .reel-slide__ends-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Title */
+  .reel-slide__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.35;
+  }
+
+  /* Price row */
+  .reel-slide__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .reel-slide__price {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cb-violet);
+    font-family: var(--mono);
+  }
+
+  .reel-slide__price-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* eBay CTA */
+  .reel-slide__cta {
+    display: inline-block;
+    align-self: flex-start;
+    background: var(--cb-indigo);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .reel-slide__cta:hover { text-decoration: none; background: #3528C2; }
+
+  /* Social bar in reel context */
+  .reel-slide__social .social-bar {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  /* Swipe hint */
+  .reel-slide__swipe-hint {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    z-index: 1;
+    opacity: 0.35;
+    animation: reel-hint-float 2.2s ease-in-out infinite;
+  }
+
+  .reel-slide__swipe-arrow { font-size: 14px; color: #fff; }
+  .reel-slide__swipe-label { font-size: 9px; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  @keyframes reel-hint-float {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.35; }
+    50%       { transform: translateX(-50%) translateY(-5px); opacity: 0.6; }
+  }
 }
 
 /* ── Listing Permalink Page ── */
