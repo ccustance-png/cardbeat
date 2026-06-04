@@ -281,21 +281,21 @@ a:hover { text-decoration: underline; }
 /* ── Sport Filter ── */
 .sport-filter {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
-/* Desktop shows pill buttons, mobile shows dropdown */
-.sport-filter--desktop { display: flex; }
-.sport-filter--mobile  { display: none; }
+.sport-select-wrap {
+  max-width: 220px;
+}
+
 
 /* ── Sport dropdown (mobile) ── */
 .sport-select-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1380,9 +1380,9 @@ a:hover { text-decoration: underline; }
   .sport-filter { margin-bottom: 8px; }
   .auction-filters { margin-bottom: 8px; }
 
-  /* Swap sport filter: hide pill buttons, show dropdown */
-  .sport-filter--desktop { display: none; }
-  .sport-filter--mobile  { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  /* Sport dropdown: stretch full width on mobile */
+  .sport-filter { margin-bottom: 8px; }
+  .sport-select-wrap { flex: 1; max-width: none; }
 
   /* Hide desktop grid, show reel */
   .desktop-feed { display: none; }
