@@ -286,6 +286,55 @@ a:hover { text-decoration: underline; }
   flex-wrap: wrap;
 }
 
+/* Desktop shows pill buttons, mobile shows dropdown */
+.sport-filter--desktop { display: flex; }
+.sport-filter--mobile  { display: none; }
+
+/* ── Sport dropdown (mobile) ── */
+.sport-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 10px 0 12px;
+  transition: border-color 0.15s;
+}
+
+.sport-select-wrap:focus-within {
+  border-color: var(--cb-violet);
+  box-shadow: 0 0 0 2px rgba(123, 111, 255, 0.12);
+}
+
+.sport-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 0;
+  flex: 1;
+  cursor: pointer;
+  outline: none;
+}
+
+.sport-select option {
+  background: #1A1245;
+  color: #F7F7FB;
+}
+
+.sport-select-chevron {
+  color: var(--text-dim);
+  font-size: 13px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 .sport-btn {
   display: inline-flex;
   align-items: center;
@@ -1330,6 +1379,10 @@ a:hover { text-decoration: underline; }
   .view-toggle { margin-top: 10px; margin-bottom: 8px; }
   .sport-filter { margin-bottom: 8px; }
   .auction-filters { margin-bottom: 8px; }
+
+  /* Swap sport filter: hide pill buttons, show dropdown */
+  .sport-filter--desktop { display: none; }
+  .sport-filter--mobile  { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 
   /* Hide desktop grid, show reel */
   .desktop-feed { display: none; }
